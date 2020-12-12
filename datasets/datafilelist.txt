@@ -17,3 +17,5 @@ This is the list of data files/data folders used to load
       adm2019.parquet
       
       CodeMappingData.txt (file)
+
+Download all these files/folder into C:\snowflake\inputData\ on local drive to load data into snowflake instance
