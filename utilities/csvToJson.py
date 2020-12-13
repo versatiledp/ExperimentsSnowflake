@@ -6,9 +6,8 @@
 import csv 
 import json 
   
-csvfile2019 = open("C:\\snowflake\\inputData\\rawdata\\effy2019.csv", "r")
-jsonfile2019 = open( "C:\\snowflake\\inputData\\effy2019_rv.json" , 'w')
-#dict_reader = csv.DictReader(csvfile2019)
+csvfile2019 = open("C:\\snowflake\\data\\rawdata\\effy2019.csv", "r")
+jsonfile2019 = open( "C:\\snowflake\\data\\input\\effy2019_rv.json" , 'w') 
 reader2019 = csv.DictReader(csvfile2019)
 for row in reader2019:
     json.dump(row, jsonfile2019)
@@ -16,9 +15,8 @@ for row in reader2019:
 csvfile2019.close()
 jsonfile2019.close()
 
-csvfile2018 = open("C:\\snowflake\\inputData\\rawdata\\effy2018_rv.csv", "r")
-jsonfile2018 = open( "C:\\snowflake\\inputData\\effy2018_rv.json" , 'w')
-#dict_reader = csv.DictReader(csvfile2018)
+csvfile2018 = open("C:\\snowflake\\data\\rawdata\\effy2018_rv.csv", "r")
+jsonfile2018 = open( "C:\\snowflake\\data\\input\\effy2018_rv.json" , 'w') 
 reader2018 = csv.DictReader(csvfile2018)
 for row in reader2018:
     json.dump(row, jsonfile2018)
@@ -26,9 +24,8 @@ for row in reader2018:
 csvfile2018.close()
 jsonfile2018.close()
 
-csvfile2017 = open("C:\\snowflake\\inputData\\rawdata\\effy2017_rv.csv", "r")
-jsonfile2017 = open( "C:\\snowflake\\inputData\\effy2017_rv.json" , 'w')
-#dict_reader = csv.DictReader(csvfile2017)
+csvfile2017 = open("C:\\snowflake\\data\\rawdata\\effy2017_rv.csv", "r")
+jsonfile2017 = open( "C:\\snowflake\\data\\input\\effy2017_rv.json" , 'w') 
 reader2017 = csv.DictReader(csvfile2017)
 for row in reader2017:
     json.dump(row, jsonfile2017)
