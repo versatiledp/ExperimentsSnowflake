@@ -1,0 +1,181 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snowflake data ingestion &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="snowflake-data-ingestion">
+<h1>Snowflake data ingestion<a class="headerlink" href="#snowflake-data-ingestion" title="Permalink to this headline">¶</a></h1>
+<p>We will learn the core features of loading data into the snowflake stage area. A stage is a temporary storage area in the snowflake warehouse. Stage area is used to load data into tables.</p>
+<div class="section" id="stage-areas-in-the-snowflake">
+<h2>Stage areas in the snowflake<a class="headerlink" href="#stage-areas-in-the-snowflake" title="Permalink to this headline">¶</a></h2>
+<p>There are main <strong>three</strong> stage areas in the snowflake
+- The User Stage
+- Table Stage
+- Internal Named Stage</p>
+<div class="section" id="the-user-stage">
+<h3>The User Stage<a class="headerlink" href="#the-user-stage" title="Permalink to this headline">¶</a></h3>
+<p>Each snowflake user is attached to the default user stage to store the file. This stage area is only accessible by specific user</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>put file://D:\filelocation\filename.csv @~/staged;
+</pre></div>
+</div>
+<p>The above statment will copy the filename.csv from the given location to userstage area in the snowflake warehouse.
+The content of this stage area can be checked with</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>list @~/staged;
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The user stages are referenced using &#64;~.
+For example, use LIST &#64;~ to list the files in a user stage</p>
+</div>
+</div>
+<div class="section" id="table-stage">
+<h3>Table Stage<a class="headerlink" href="#table-stage" title="Permalink to this headline">¶</a></h3>
+<p>Each table has a Snowflake stage allocated for storing files. Multiple users can access a single table stage area</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>put file://D:\filelocation\filename.csv @%test;
+</pre></div>
+</div>
+<p>You can also specify the subfolder within the table stage where you want to upload files</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>put file://D:\filelocation\filename.csv @%test/sample_csv/;
+</pre></div>
+</div>
+<p>Table stages have the same name as the table. The table stages cannot be altered or dropped.
+Table stages do not support setting file format options. Instead, specify file format details in your <strong>COPY</strong> command.
+To get simply list of the files in table stage area, use <strong>LIST &#64;%test</strong></p>
+</div>
+<div class="section" id="internal-named-stage">
+<h3>Internal Named Stage<a class="headerlink" href="#internal-named-stage" title="Permalink to this headline">¶</a></h3>
+<p>Internal stages are named database objects.
+Internal named stages are the recommended stage to load the tables.
+The Internal named stages can be accessed by multiple users.
+Internal stage can load multiple tables.
+File formats can be specified while creating an internal Named stage.
+In our project we will be using internal named stage to copy our data from different sources.</p>
+<div class="admonition hint">
+<p class="admonition-title">Hint</p>
+<p>Figure below shows three different stage areas in the warehouse.</p>
+</div>
+<div class="figure align-center">
+<a class="reference internal image-reference" href="_images/stagetype.png"><img alt="_images/stagetype.png" src="_images/stagetype.png" style="width: 50%;" /></a>
+</div>
+<p>Create json file format and stage area to load json data for this project</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---</span> <span class="n">Create</span> <span class="n">file</span> <span class="nb">format</span>
+<span class="n">CREATE</span>  <span class="n">OR</span> <span class="n">REPLACE</span>   <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_iped_parquet</span>
+                      <span class="n">TYPE</span> <span class="o">=</span><span class="n">PARQUET</span> <span class="n">TRIM_SPACE</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">Create</span> <span class="n">stage</span> <span class="n">area</span> <span class="n">to</span> <span class="n">load</span> <span class="n">Parquet</span> <span class="n">file</span> <span class="n">using</span> <span class="nb">format</span> <span class="n">created</span> <span class="n">above</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">stage</span> <span class="n">IPEDS_adm</span> <span class="n">file_format</span> <span class="o">=</span> <span class="n">ff_iped_parquet</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Create parquet file format and stage area to load parquet data for this project</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">---</span> <span class="n">Create</span> <span class="n">file</span> <span class="nb">format</span>
+<span class="n">CREATE</span>  <span class="n">OR</span> <span class="n">REPLACE</span>   <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_iped_parquet</span>
+                      <span class="n">TYPE</span> <span class="o">=</span><span class="n">PARQUET</span> <span class="n">TRIM_SPACE</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">Create</span> <span class="n">stage</span> <span class="n">area</span> <span class="n">to</span> <span class="n">load</span> <span class="n">Parquet</span> <span class="n">file</span> <span class="n">using</span> <span class="nb">format</span> <span class="n">created</span> <span class="n">above</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">stage</span> <span class="n">IPEDS_adm</span> <span class="n">file_format</span> <span class="o">=</span> <span class="n">ff_iped_parquet</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>External hyperlinks, like <a href="#id1"><span class="problematic" id="id2">Python_</span></a>.
+.. _Python: <a class="reference external" href="http://www.python.org/">http://www.python.org/</a></p>
+<ol class="arabic simple">
+<li><p>The central conceit of the fictional <a class="reference external" href="file:///C:/Code/python/Book/source/AcademicInstitute.htm">Flashman Papers</a> is that Flashy</p></li>
+<li><p>besieging <a class="reference external" href="http://en.wikipedia.org/wiki/Siege_of_Breda">Breda</a> in 1625.</p></li>
+<li><p>my club, <a class="reference external" href="http://freelyspeaking.org/">Freely Speaking Toastmasters</a>.</p></li>
+</ol>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data platform overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data load software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake stage area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute mapping</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

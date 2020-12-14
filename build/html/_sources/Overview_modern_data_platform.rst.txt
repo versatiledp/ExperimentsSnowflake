@@ -1,0 +1,437 @@
+Data platform overview
+=============================
+
+Modern data architecture allow enterprises to ingest data coming from
+multiple systems, variety of data formats, different speeds, and unknown
+intervals. Layered data platform design makes it easy to process big
+data efficiently. It enables organizations to quickly deploy new data
+analytics business case driven solution to drive revenue and
+profitability.
+
+Data source layer
+-----------------
+
+-  Data sources can be inside the enterprise or external  
+-  Data sources generate data in real-time and batch mode   
+-  Variety: Data formats can be structured, semi-structured, or unstructured   
+-  The Velocity (speed of arrival) and Volume (delivery rate) will differ by sources 
+
+Data processing and storage layer
+---------------------------------
+
+Receives data from the source, converts the data into a format
+comprehensible for the data servicing and analytics tool, and stores the
+data according to its format. For example, Large amount of data can be
+stored in a Hadoop distributed file system (HDFS) store. Large data
+processing can be performed through Hadoop/Spark system. Data may
+undergo format changes as it is processed through these systems. Cloud
+service providers like Amazon, Google, and Microsoft allow to build and
+operate data-centric applications with infinite scale. Robust and
+inexpensive storage is fundamental to the operation and scalability of
+big data architecture. 
+
+Big query, azure synapse, redshift, and snowflake
+are used as standalone solution for big data processing or in
+combination of Hadoop/spark ecosystems
+
+Analytics layer
+---------------
+
+The analytical layer reads the data ingested and transformed by the data
+processing and storage layer of big data ecosystem. This layer consists
+varieties of data analytic tools for different user requirements. This
+layer provides the data discovery mechanisms from the huge volume of
+data. Apache spark SQL, Hive, Apache spark streaming, Machine learning
+libraries, Apache spark GraphX, SQL libraries, and number of other tool
+sets are utilized in this layer to understand underlying data landscape.
+
+Consumption layer
+-----------------
+
+This layer consumes the output from the Analytics layer. This layer
+receives results from the analytical layer and presents them - also
+called as the business intelligence layer using visualization tools,
+business processes
+
+The following diagram summarize layers in data management solution
+
+This book is focused using snowflake for big data processing.
+
+Snowflake is a cloud based SaaS (Software-as-a-Service) data warehouse
+solution
+
+-  Is faster, easier to use, scalable, and far more flexible
+-  has an intuitive simple interface
+-  Services can be started quickly and delivers high-quality performance
+-  Solves the concurrency issues with its multi-cluster warehouse
+   architecture
+-  Loads and processes the data quickly
+-  Is a fully automated platform
+-  Supports auto-scaling, big data workload, and data sharing
+-  Allows you to scale up the virtual warehouse and provides elasticity
+   as per needs
+   
+The Snowflake architecture consists of three layers: storage, compute, and services .Each of these layers can be scaled independently. 
+So organizations can scale up or down as needed and pay only for the resources they used.
+
+In the Snowflake platform data can be ingested from variety of data formats like Parquet, CSV, ORC, JDBC, ODBC, and XML data sources. 
+Supports JSON to the great extent. 
+
+-  Provides full support to create views on different data formats.
+-  Allows data sharing support for securely sharing data with other Snowflake accounts. 
+-  Permits replication and syncing databases across multiple accounts in different regions. 
+-  Enables time travel functions to query the history of data changes over the period. 
+
+
+Snowflake is cloud-agnostic platform providing a unified data management across multiple cloud service providers like Azure, 
+AWS, and GCP. In other words, Snowflake data warehouse can be built on top of the Amazon web services, Microsoft azure 
+cloud infrastructure, or google cloud.
+
+Snowflake command line client - SnowSQL can also access all aspects of managing and using Snowflake. 
+ODBC and JDBC drivers provides easy connectivity from application/reporting layer to Snowflake.
+
+This book includes:
+-  Data Sources
+-  Different source data formats, available to build platform
+-  Snowflake database development 
+-  Snowflake data transformation
+-  Data pipeline orchestration
+-  Data lineage, pipeline audit and control 
+-  SnowSQL and JavaScript based stored procedures
+-  Business use cases, we are tasked to solve
+-  Data visualization
+
+
+Data source
+==============
+Integrated Postsecondary Education Data System (IPEDS) - URL : https://nces.ed.gov/ipeds/
+is primary source for information on U.S. colleges, universities, and technical and vocational institutions. 
+Most of the data used in this book is downloaded from - URL : https://nces.ed.gov/ipeds/use-the-data
+
+Data is downloaded for three academic year (2017, 2018, and 2019).
+
+Disclaimer – We have modified this data to explain snowflake functionality. The files used in this book are:
+
+Institutional Characteristics files [HDR]
+---------------------------------------------------
+This file contains directory information for every institution in the IPEDS universe. 
+It includes name, address, city, state, zip code and various URL links to the institution's home page, 
+admissions, financial aid offices and the net price calculator
+
+12-Month Enrollment [EFFY]
+---------------------------------------------------
+This file contains the unduplicated headcount of students enrolled over a 
+12-month period for both undergraduate and graduate levels. Each record is 
+uniquely defined by the variables IPEDS ID, and the level of enrollment.
+
+Admissions and Test Scores [ADM] 
+---------------------------------------------------
+This file contains information about the undergraduate selection process 
+for entering first-time, degree/certificate-seeking students. 
+
+Student charges for academic year programs [IC*AY] 
+---------------------------------------------------
+This file contains data on student charges for a full academic year.  Price of attendance includes 
+amounts for published tuition and required fees, books and supplies, room and board and other expenses. 
+
+Code Mapping Data
+-----------------------------
+
+List all the column codes and associated description 
+(Example row – cngdstcd 3713='NC, District 13’ can be interpreted as when table attribute 
+(column) cngdstcd content 3713, description NC, District 13)
+
+Data collection notes
+--------------------------
+-  Original text delimited data in 
+-  EFFY file is converted to Jason format 
+-  ADM file is converted to Parquet format
+-  IC*AY file is converted to ORC format
+-  There is no change in HDR file format (CSV format)
+
+ (Programs used to convert these formats are available to download from URL : https://nces.ed.gov/ipeds/)
+All the datafiles used throughout the books are available to download from URL : https://nces.ed.gov/ipeds/
+
+Data load software
+=============================
+
+Snowflake data load can be achieved 
+
+-  SnowSQL - CLI allows bulk load data using SQL commands
+-  Snowpipe can be utilized to automate large data set across multiple platforms
+-  Web interfaces can be used to load small amounts of data
+-  Snowflake works with a wide range third party ETL/ELT Informatica, Talend, ADF
+
+SnowSQL CLI 
+------------------
+SnowSQL is the command line client for Snowflake. It executes SQL queries 
+and performs all DDL and DML operations. It is an easy way to access snowflake from the command line. 
+It has the same capabilities as the Snowflake UI.
+
+Login into Snowflake and click on help in the top right corner and download
+
+You can also download SnowSQL CLI from the location - URL : https://snowflakesolutions.net/snow-sql-cliclient/
+
+Snowpipe
+------------------
+Snowpipe is a mechanism to load high frequency or streaming data. 
+Snowpipe provides the capability to load the data as soon as it becomes available in a 
+defined stage. It can load a near real-time or micro-batch load of data. Snowpipe is serverless architecture,
+ it does not use virtual warehouse resources. Snowpipe have its own resources, and those are managed by snowflakes instances. 
+
+Snowpipe makes rest API available to load data from 
+
+-  Amazon web services (AWS) -Amazon S3
+-  Google cloud platform - Cloud Storage
+-  Microsoft azure blob storage, data lake storage gen2
+-  Hadoop and Spark big data platform
+
+All the files in this book are loaded from local folder (like C:\data\*.*) to the Snowflake stage area using SnowSQL CLI.
+
+SQL CLI can be invoked with snowsql.exe  
+
+SnowSQL Command Usage
+
+You can use the following command to connect to Snowflake using SnowSQL.
+
+
+.. code-block:: rst
+
+    snowsql -a accountName -u userName -d databaseName -s schemaName
+	
+For example, consider the following command to connect Snowflake from Windows command line.
+
+.. code-block:: rst
+
+	snowsql -a xxxxxx.us-east-1 -u xxxxxx -d demo_db -s public
+	Password:******
+
+
+Snowflake stage area
+============================
+Snowflake allows several types of stage. A stage is a temporary storage area in the snowflake warehouse. 
+Stage area is used to load data into snowflake tables. 
+
+Snowflake supports two types of stages for storing data files- external and internal.
+
+External stages are storage locations outside the Snowflake environment in another cloud storage location. 
+It could Amazon S3 storage, Microsoft Azure storage, and Google Cloud Storage buckets. This provides greater 
+flexibility to accessing the data in Snowflake.  
+
+.. line-block::
+
+Internal stage stores data files internally within Snowflake. Internal stages can be either permanent or temporary.  
+Internal storage is classified into three categories. 
+
+
+User Stage  
+--------------------------
+Each snowflake user is attached to the default stage to store the file. This is only accessible by specific user
+
+.. code-block:: rst
+
+	put file://D:\Snowflake\sample_file.csv @~/staged;
+
+The file will be uploaded to user stage and you can verify the same using LIST command.
+
+.. code-block:: rst
+
+	list @~/staged;
+
+The user stages are referenced using @~.
+
+For example, use LIST @~ to list the files in a user stage
+
+Table Stage 
+--------------------------
+
+Each table has a Snowflake stage allocated for storing files. Multiple users can access a single table stage area.
+
+.. code-block:: rst
+
+	put file://D:\Snowflake\sample_file.csv @%test;
+	
+You can also specify the subfolder within the table stage where you want to upload files
+
+.. code-block:: rst
+
+	put file://D:\Snowflake\sample_file.csv @%test/sample_csv/;
+
+The Table stages are referenced using @%tableName.
+
+For example, to list the files in a table stage
+
+.. code-block:: rst
+
+	use LIST @%test
+
+Table stages have the same name as the table. The table stages cannot be altered or dropped.
+
+Table stages do not support setting file format options. Instead, specify file format details in your COPY command.
+
+Internal Named Stage
+--------------------------
+
+Internal stages are named database objects. Internal named stages are the recommended stage 
+to load the tables. The Internal named stages can be accessed by multiple users. Internal stage can 
+load multiple tables. File formats can be specified while creating an internal Named stage.
+
+Internal storage copies data within snowflake warehouse as shown below.
+
+
+Ingesting data into Snowflake stage
+========================================================
+
+Internal stage area for IPEDS
+----------------------------------------------------
+
+The following diagram presents our files in different formats are used to copy in internal storage.
+
+We are going to load different file formats like CSV, JSON, parquet, and ORC. 
+Internal named stage needs to be created for each of the file formats before we load data.
+
+Create internal stage area IPEDS
+----------------------------------------------------
+
+Create the file formats & stage area for text file 
+1. tab delimited 
+2. comma separated with no header
+3. comma separated with header
+
+.. code-block:: rst
+
+	-- Number of header lines at the start of the file. 
+	-- The COPY command skips header lines when loading data
+	-- All these file formats can be used to create different stage areas	
+	CREATE OR REPLACE  FILE FORMAT ff_IPEDS_CSVSkipHeaderTabDelimited
+				TYPE =   CSV  
+				FIELD_DELIMITER = '\t'  COMPRESSION = AUTO
+				SKIP_HEADER = 1 ;      
+	CREATE OR REPLACE  FILE FORMAT ff_IPEDS_CSVSkipHeaderCommaDelimited 
+				TYPE =   CSV  
+				FIELD_DELIMITER = ','  COMPRESSION = AUTO
+				SKIP_HEADER = 1;  						  
+	-- The COPY command does not skip any lines.  
+	CREATE OR REPLACE  FILE FORMAT ff_IPEDS_CSVHeaderTabDelimited
+				TYPE =   CSV  
+				FIELD_DELIMITER = '\t'  COMPRESSION = AUTO
+				SKIP_HEADER = 1 ; 
+	CREATE OR REPLACE  FILE FORMAT ff_IPEDS_CSVHeaderCommaDelimited  
+				TYPE =   CSV  
+				FIELD_DELIMITER = ','  COMPRESSION = AUTO
+				SKIP_HEADER = 0 encoding = 'iso-8859-1' 
+				FIELD_OPTIONALLY_ENCLOSED_BY='"';  	
+	-- create satge area to load csv files for the project
+	CREATE OR REPLACE STAGE IPEDS_HD FILE_FORMAT 
+				= ff_IPEDS_CSVHeaderCommaDelimited;
+	CREATE OR REPLACE STAGE IPEDS_CM FILE_FORMAT 
+				= ff_IPEDS_CSVSkipHeaderTabDelimited; 
+
+--- Create json file format & stage area
+
+.. code-block:: rst
+
+	-- Create file format to load json file 
+	CREATE OR REPLACE FILE FORMAT ff_IPEDS_Json
+				TYPE =JSON TRIM_SPACE = TRUE; 
+	-- Create stage area to load json  
+	CREATE OR REPLACE stage IPEDS_EFFY FILE_FORMAT = ff_IPEDS_Json;
+
+
+--- Create ORC file format & stage area
+
+.. code-block:: rst
+
+	-- Create file format to load ORC file 
+	CREATE OR REPLACE FILE FORMAT ff_IPEDS_ORC
+				TYPE =ORC TRIM_SPACE = TRUE;
+	-- Create stage area to load ORC file 
+	CREATE OR REPLACE stage IPEDS_IC FILE_FORMAT = ff_IPEDS_ORC;
+
+
+
+--- Create parquet file format & stage area 
+
+.. code-block:: rst
+
+	-- Create Parquet file format
+	CREATE OR REPLACE  FILE FORMAT ff_IPEDS_Parquet
+				TYPE =PARQUET TRIM_SPACE = TRUE;
+	-- Create stage area to load Parquet file 
+	CREATE OR REPLACE stage IPEDS_ADM FILE_FORMAT = ff_IPEDS_Parquet;
+
+
+Once these formats are created, we can check available formats to load snowflake internal stage area with
+
+.. code-block:: rst
+
+	-- Check the formats and stage area available in snowflake
+	
+Summary
+
+We have created an internal named stage in the snowflake to ingest CSV files, parquet file, ORC file, and json files.
+
+We will use the following stage area to load or raw files.
+•	IPEDS_ADM 
+•	IPEDS_EFFY
+•	IPEDS_CM 
+•	IPEDS_HD 
+•	IPEDS_IC   
+
+
+Load the files to internal stage for IPEDS
+----------------------------------------------------
+
+Connect to snowflake database using SnowSQL CLI and load the following files to staging area.
+
+Load academic institution (HDR) files - These are CSV files
+
+.. code-block:: rst
+
+	put file://C:\snowflake\inputData\HD2017.csv @IPEDS_HD;
+	put file://C:\snowflake\inputData\HD2018.csv @IPEDS_HD;
+	put file://C:\snowflake\inputData\HD2019.csv @IPEDS_HD;
+	
+
+Load enrollment (EFFY) files  - These are json files
+
+.. code-block:: rst
+
+	put file://C:\snowflake\inputData\effy2017_rv.json @IPEDS_EFFY;
+	put file://C:\snowflake\inputData\effy2018_rv.json @IPEDS_EFFY;
+
+	put file://C:\snowflake\inputData\effy2019_rv.json @IPEDS_EFFY;
+
+Load institutional (IC) charges files  - These are ORC files. All the partitioned are loaded into specific folder of orc staging area
+
+.. code-block:: rst
+
+	put file://C:\snowflake\inputData\ic2017_ay_orc\*.* @IPEDS_IC/2017/;
+	put file://C:\snowflake\inputData\ic2018_ay_orc\*.* @IPEDS_IC/2018/;
+	put file://C:\snowflake\inputData\ic2019_ay_orc\*.* @IPEDS_IC/2019/;
+
+Load admission files  - These are parquet files. All the partitioned are loaded into specific folder of parquet staging area
+
+.. code-block:: rst
+
+	put file://C:\snowflake\inputData\adm2017.parquet\*.* @IPEDS_ADM/2017/;
+	put file://C:\snowflake\inputData\adm2018.parquet\*.* @IPEDS_ADM/2018/;
+	put file://C:\snowflake\inputData\adm2019.parquet\*.* @IPEDS_ADM/2019/;
+	
+Load code mapping files  - These are csv files.
+
+.. code-block:: rst
+
+	put file://C:\snowflake\inputData\CodeMappingData.txt @IPEDS_CM;
+
+Confirm stage file availability in snowflake
+
+Once these files are loaded to stage area, we can check availability of these data files in the internal stage area as below
+
+.. code-block:: rst
+
+	list command to check the files
+
+
+
+

@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data load software &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Snowflake stage area" href="Chap03_SnowflakeStageArea.html" />
+    <link rel="prev" title="Data source" href="Chap01_DataSource.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="data-load-software">
+<h1>Data load software<a class="headerlink" href="#data-load-software" title="Permalink to this headline">¶</a></h1>
+<p>Snowflake data load can be achieved</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>SnowSQL - CLI allows bulk load data using SQL commands</p></li>
+<li><p>Snowpipe can be utilized to automate large data set across multiple platforms</p></li>
+<li><p>Web interfaces can be used to load small amounts of data</p></li>
+<li><p>Snowflake works with a wide range third party ETL/ELT Informatica, Talend, ADF</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="snowsql-cli">
+<h2>SnowSQL CLI<a class="headerlink" href="#snowsql-cli" title="Permalink to this headline">¶</a></h2>
+<p>SnowSQL is the command line client for Snowflake. It executes SQL queries
+and performs all DDL and DML operations. It is an easy way to access snowflake from the command line.
+It has the same capabilities as the Snowflake UI.</p>
+<p>Login into Snowflake and click on help in the top right corner and download</p>
+<div class="figure align-center">
+<img alt="_images/Chap02_01_snowflakeCLI.png" src="_images/Chap02_01_snowflakeCLI.png" />
+</div>
+<p>You can also download SnowSQL CLI from the location - URL : <a class="reference external" href="https://snowflakesolutions.net/snow-sql-cliclient/">https://snowflakesolutions.net/snow-sql-cliclient/</a></p>
+<div class="figure align-center">
+<img alt="_images/Chap02_02_snowflakeCLI.png" src="_images/Chap02_02_snowflakeCLI.png" />
+</div>
+</div>
+<div class="section" id="snowpipe">
+<h2>Snowpipe<a class="headerlink" href="#snowpipe" title="Permalink to this headline">¶</a></h2>
+<p>Snowpipe is a mechanism to load high frequency or streaming data.
+Snowpipe provides the capability to load the data as soon as it becomes available in a
+defined stage. It can load a near real-time or micro-batch load of data. Snowpipe is serverless architecture,
+it does not use virtual warehouse resources. Snowpipe have its own resources, and those are managed by snowflakes instances.</p>
+<p>Snowpipe makes rest API available to load data from</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Amazon web services (AWS) -Amazon S3</p></li>
+<li><p>Google cloud platform - Cloud Storage</p></li>
+<li><p>Microsoft azure blob storage, data lake storage gen2</p></li>
+<li><p>Hadoop and Spark big data platform</p></li>
+</ul>
+</div></blockquote>
+<p>All the files in this book are loaded from local folder (like C:\snowflake\data\input\*.*) to the Snowflake stage area using SnowSQL CLI.</p>
+<p>SQL CLI can be invoked with snowsql.exe</p>
+<p>SnowSQL Command Usage</p>
+<p>You can use the following command to connect to Snowflake using SnowSQL.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>snowsql -a accountName -u userName -d databaseName -s schemaName
+</pre></div>
+</div>
+<p>For example, consider the following command to connect Snowflake from Windows command line.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>snowsql -a xxxxxx.us-east-1 -u xxxxxx -d demo_db -s public
+Password:<span class="gs">*****</span>*
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data platform overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data load software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#snowsql-cli">SnowSQL CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snowpipe">Snowpipe</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake stage area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute mapping</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap01_DataSource.html" title="previous chapter">Data source</a></li>
+      <li>Next: <a href="Chap03_SnowflakeStageArea.html" title="next chapter">Snowflake stage area</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
