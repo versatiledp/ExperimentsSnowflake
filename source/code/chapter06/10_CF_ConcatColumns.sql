@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION
-    Concat_Columns(COLUMNLIST array)
+    ConcatColumns(COLUMNLIST array)
     RETURNS varchar
     LANGUAGE javascript
   AS

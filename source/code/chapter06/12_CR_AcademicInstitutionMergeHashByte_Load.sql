@@ -1,5 +1,5 @@
 CREATE OR REPLACE PROCEDURE 
-		pr_AcademicInstitutionMergeHashByte_sav(YEAR FLOAT)
+		pr_AcademicInstitutionMergeHashByte_Load(YEAR FLOAT)
   RETURNS STRING
   LANGUAGE javascript
   EXECUTE AS OWNER
@@ -11,7 +11,7 @@ CREATE OR REPLACE PROCEDURE
 	WHERE   ACADEMICYEAR = ` + YEAR.toString() +`
 	) S ON T.InstitutionIdentifier = S.InstitutionIdentifier
 	WHEN MATCHED
-		AND ( Hash_Key(ARRAY_CONSTRUCT(
+		AND ( HashKey(ARRAY_CONSTRUCT(
 	T.InstitutionName,
 	T.InstitutionNameAlias,
 	T.StreetAddress,
@@ -68,7 +68,7 @@ CREATE OR REPLACE PROCEDURE
 	T.NCESGroupCategory,
 	T.DataFeedbackReport,
 	T.CarnegieClassification,
-	T.WebAddress <> Hash_Key(ARRAY_CONSTRUCT(
+	T.WebAddress)) <> HashKey(ARRAY_CONSTRUCT(
 		S.InstitutionName,
 		S.InstitutionNameAlias,
 		S.StreetAddress,
@@ -152,7 +152,7 @@ CREATE OR REPLACE PROCEDURE
 	'StudentRightAthleteGraduationRateWebAddress',S.StudentRightAthleteGraduationRateWebAddress,
 	'DisabilityServicesWebAddress',S.DisabilityServicesWebAddress
 				)    
-	) THEN	
+	))) THEN	
 UPDATE
 SET
   InstitutionIdentifier = S.InstitutionIdentifier,

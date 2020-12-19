@@ -1,13 +1,15 @@
-CREATE OR REPLACE PROCEDURE pr_AcademicInstitution_sav(YEAR FLOAT)
+CREATE OR REPLACE PROCEDURE 
+	pr_AcademicInstitution(YEAR FLOAT)
   RETURNS STRING
   LANGUAGE javascript
   EXECUTE AS OWNER
   AS
   $$
-  var sql_command = `
- MERGE INTO AcademicInstitution T USING (
-  SELECT  *  FROM  Od_AcademicInstitution
-  WHERE   ACADEMICYEAR = ` + YEAR.toString() +`
+var sql_command = 
+`
+MERGE INTO AcademicInstitution T USING (
+SELECT  * FROM  od_AcademicInstitution
+WHERE  ACADEMICYEAR = ` + YEAR.toString() +`
 ) S ON T.InstitutionIdentifier = S.InstitutionIdentifier
 WHEN MATCHED
 AND (
@@ -25,7 +27,7 @@ AND (
   OR IFNULL(T.EmployerIdentificationNumber, '') <> IFNULL(S.EmployerIdentificationNumber, '')
   OR IFNULL(T.DunBradstreetNumbers, '') <> IFNULL(S.DunBradstreetNumbers, '')
   OR IFNULL(T.PostsecondaryEducationIDNumber, '') <> IFNULL(S.PostsecondaryEducationIDNumber, '')
-  OR IFNULL(T.TitleIVEligibilityIndicatorCode, 0) <> IFNULL(S.TitleIVEligibilityIndicatorCode, 0)
+  OR IFNULL(T.TitleIVEligibilityIndicatorCode, 0) <> IFNULL(S.TitleIVEligibilityIndicatorCode, 0)	
   OR IFNULL(T.SectorOfInstitution, 0) <> IFNULL(S.SectorOfInstitution, 0)
   OR IFNULL(T.LevelOfInstitution, 0) <> IFNULL(S.LevelOfInstitution, 0)
   OR IFNULL(T.ControlOfInstitution, 0) <> IFNULL(S.ControlOfInstitution, 0)
@@ -54,7 +56,7 @@ AND (
   OR IFNULL(T.InstitutionSizeCategory, 0) <> IFNULL(S.InstitutionSizeCategory, 0)
   OR IFNULL(T.MultiCampusOrganization, 0) <> IFNULL(S.MultiCampusOrganization, 0)
   OR IFNULL(T.NameOfMultiCampusOrganization, '') <> IFNULL(S.NameOfMultiCampusOrganization, '')
-  OR IFNULL(T.IdentificationNumberOfMultiCampusOrganization, ''  ) <> IFNULL(S.IdentificationNumberOfMultiCampusOrganization,'')
+  OR IFNULL(T.IdentificationNumberOfMultiCampusOrganization, '') <> IFNULL(S.IdentificationNumberOfMultiCampusOrganization,'')
   OR IFNULL(T.CoreBasedStatisticalArea, 0) <> IFNULL(S.CoreBasedStatisticalArea, 0)
   OR IFNULL(T.CBSATypeMetropolitanMicropolitan, 0) <> IFNULL(S.CBSATypeMetropolitanMicropolitan, 0)
   OR IFNULL(T.CombinedStatisticalArea, 0) <> IFNULL(S.CombinedStatisticalArea, 0)
@@ -65,7 +67,7 @@ AND (
   OR IFNULL(T.LongitudeLocation, 0.0) <> IFNULL(S.LongitudeLocation, 0.0)
   OR IFNULL(T.LatitudeLocation, 0.0) <> IFNULL(S.LatitudeLocation, 0.0)
   OR IFNULL(T.NCESGroupCategory, 0) <> IFNULL(S.NCESGroupCategory, 0)
-  OR IFNULL(T.DataFeedbackReport, 0) <> IFNULL(S.DataFeedbackReport, 0) 
+  OR IFNULL(T.DataFeedbackReport, 0) <> IFNULL(S.DataFeedbackReport, 0)
   OR CarnegieClassification  <> OBJECT_CONSTRUCT (
 				'AcademicInstitutionIdentifier',S.InstitutionIdentifier,
 				'CarnegieClassification2000' ,S.CarnegieClassification2000,
@@ -75,15 +77,9 @@ AND (
 				'CarnegieClassification2015GraduateProgram' ,S.CarnegieClassification2015GraduateProgram,
 				'CarnegieClassification2015UndergraduateProfile' ,S.CarnegieClassification2015UndergraduateProfile,
 				'CarnegieClassification2015EnrollmentProfile' ,S.CarnegieClassification2015EnrollmentProfile,
-				'CarnegieClassification2015SizeSetting' ,S.CarnegieClassification2015SizeSetting ,
-				'CarnegieClassification2018Basic',S.CarnegieClassification2018Basic,
-				'CarnegieClassification2018UndergraduateProgram' ,S.CarnegieClassification2018UndergraduateProgram,
-				'CarnegieClassification2018GraduateProgram',S.CarnegieClassification2018GraduateProgram,
-				'CarnegieClassification2018UndergraduateProfile' ,S.CarnegieClassification2018UndergraduateProfile,
-				'CarnegieClassification2018EnrollmentProfile',S.CarnegieClassification2018EnrollmentProfile,
-				'CarnegieClassification2018SizeSetting' ,S.CarnegieClassification2018SizeSetting
-		       )  
-  OR WebAddress<>OBJECT_CONSTRUCT (		
+				'CarnegieClassification2015SizeSetting' ,S.CarnegieClassification2015SizeSetting
+			   )  
+  OR WebAddress <> OBJECT_CONSTRUCT (		
 				'AcademicInstitutionIdentifier',S.InstitutionIdentifier,	   
 				'InstitutionsWebAddress',S.InstitutionsWebAddress,
 				'AdmissionsOfficeWebAddress',S.AdmissionsOfficeWebAddress,
@@ -93,7 +89,7 @@ AND (
 				'VeteransMilitaryServiceTuitionPoliciesWebAddress',S.VeteransMilitaryServiceTuitionPoliciesWebAddress,
 				'StudentRightAthleteGraduationRateWebAddress',S.StudentRightAthleteGraduationRateWebAddress,
 				'DisabilityServicesWebAddress',S.DisabilityServicesWebAddress
-		       )
+			   )
 
 ) THEN
 UPDATE
@@ -153,188 +149,178 @@ SET
   LongitudeLocation = S.LongitudeLocation,
   LatitudeLocation = S.LatitudeLocation,
   NCESGroupCategory = S.NCESGroupCategory,
-  DataFeedbackReport = S.DataFeedbackReport, 
-  AcademicYear=S.AcademicYear,
+  DataFeedbackReport = S.DataFeedbackReport,
   CarnegieClassification =OBJECT_CONSTRUCT (
-				'AcademicInstitutionIdentifier',S.InstitutionIdentifier,
-				'CarnegieClassification2000' ,S.CarnegieClassification2000,
-				'CarnegieClassification20052010Basic' ,S.CarnegieClassification20052010Basic,
-				'CarnegieClassification2015Basic' ,S.CarnegieClassification2015Basic,
-				'CarnegieClassification2015UndergraduateProgram' ,S.CarnegieClassification2015UndergraduateProgram,
-				'CarnegieClassification2015GraduateProgram' ,S.CarnegieClassification2015GraduateProgram,
-				'CarnegieClassification2015UndergraduateProfile' ,S.CarnegieClassification2015UndergraduateProfile,
-				'CarnegieClassification2015EnrollmentProfile' ,S.CarnegieClassification2015EnrollmentProfile,
-				'CarnegieClassification2015SizeSetting' ,S.CarnegieClassification2015SizeSetting ,
-				'CarnegieClassification2018Basic',S.CarnegieClassification2018Basic,
-				'CarnegieClassification2018UndergraduateProgram' ,S.CarnegieClassification2018UndergraduateProgram,
-				'CarnegieClassification2018GraduateProgram',S.CarnegieClassification2018GraduateProgram,
-				'CarnegieClassification2018UndergraduateProfile' ,S.CarnegieClassification2018UndergraduateProfile,
-				'CarnegieClassification2018EnrollmentProfile',S.CarnegieClassification2018EnrollmentProfile,
-				'CarnegieClassification2018SizeSetting' ,S.CarnegieClassification2018SizeSetting
-		       ),
-	WebAddress=OBJECT_CONSTRUCT (		
-				'AcademicInstitutionIdentifier',S.InstitutionIdentifier,	   
-				'InstitutionsWebAddress',S.InstitutionsWebAddress,
-				'AdmissionsOfficeWebAddress',S.AdmissionsOfficeWebAddress,
-				'FinancialAidOfficeWebAddress',S.FinancialAidOfficeWebAddress,
-				'OnlineApplicationWebAddress',S.OnlineApplicationWebAddress,
-				'NetPriceCalculatorWebAddress',S.NetPriceCalculatorWebAddress,
-				'VeteransMilitaryServiceTuitionPoliciesWebAddress',S.VeteransMilitaryServiceTuitionPoliciesWebAddress,
-				'StudentRightAthleteGraduationRateWebAddress',S.StudentRightAthleteGraduationRateWebAddress,
-				'DisabilityServicesWebAddress',S.DisabilityServicesWebAddress
-		       ),
+		  'AcademicInstitutionIdentifier',S.InstitutionIdentifier,
+		  'CarnegieClassification2000' ,S.CarnegieClassification2000,
+		  'CarnegieClassification20052010Basic' ,S.CarnegieClassification20052010Basic,
+		  'CarnegieClassification2015Basic' ,S.CarnegieClassification2015Basic,
+		  'CarnegieClassification2015UndergraduateProgram' ,S.CarnegieClassification2015UndergraduateProgram,
+		  'CarnegieClassification2015GraduateProgram' ,S.CarnegieClassification2015GraduateProgram,
+		  'CarnegieClassification2015UndergraduateProfile' ,S.CarnegieClassification2015UndergraduateProfile,
+		  'CarnegieClassification2015EnrollmentProfile' ,S.CarnegieClassification2015EnrollmentProfile,
+		  'CarnegieClassification2015SizeSetting' ,S.CarnegieClassification2015SizeSetting
+	   ),
+  WebAddress=OBJECT_CONSTRUCT (		
+			'AcademicInstitutionIdentifier',S.InstitutionIdentifier,	   
+			'InstitutionsWebAddress',S.InstitutionsWebAddress,
+			'AdmissionsOfficeWebAddress',S.AdmissionsOfficeWebAddress,
+			'FinancialAidOfficeWebAddress',S.FinancialAidOfficeWebAddress,
+			'OnlineApplicationWebAddress',S.OnlineApplicationWebAddress,
+			'NetPriceCalculatorWebAddress',S.NetPriceCalculatorWebAddress,
+			'VeteransMilitaryServiceTuitionPoliciesWebAddress',S.VeteransMilitaryServiceTuitionPoliciesWebAddress,
+			'StudentRightAthleteGraduationRateWebAddress',S.StudentRightAthleteGraduationRateWebAddress,
+			'DisabilityServicesWebAddress',S.DisabilityServicesWebAddress
+	   ),
+  AcademicYear=S.AcademicYear,
   RecordUpdateDateTime = CURRENT_TIMESTAMP
-WHEN NOT MATCHED THEN
-	INSERT   (
-    InstitutionIdentifier,
-    InstitutionName,
-    InstitutionNameAlias,
-    StreetAddress,
-    City,
-    State,
-    ZipCode,
-    StateCode,
-    EconomicAnalysisRegions,
-    ChiefAdministrator,
-    ChiefAdministratorTitle,
-    TelephoneNumber,
-    EmployerIdentificationNumber,
-    DunBradstreetNumbers,
-    PostsecondaryEducationIDNumber,
-    TitleIVEligibilityIndicatorCode,
-    SectorOfInstitution,
-    LevelOfInstitution,
-    ControlOfInstitution,
-    HighestLevelOfOffering,
-    UndergraduateOffering,
-    GraduateOffering,
-    HighestDegreeOffered,
-    DegreeGrantingStatus,
-    HistoricallyBlackCollegeOrUniversity,
-    InstitutionHasHospital,
-    InstitutionGrantsMedicalDegree,
-    TribalCollege,
-    DegreeOfUrbanization,
-    InstitutionOpenToGeneralPublic,
-    StatusOfInstitution,
-    UnitidForMergedSchools,
-    YearInstitutionWasDeletedFromIPEDS,
-    DateInstitutionClosed,
-    InstitutionIsActive,
-    PrimarilyPostsecondaryIndicator,
-    PostsecondaryInstitutionIndicator,
-    PostsecondaryAndTitleIvInstitutionIndicator,
-    ReportingMethodForStudentCharges,
-    InstitutionalCategory,
-    LandGrantInstitution,
-    InstitutionSizeCategory,
-    MultiCampusOrganization,
-    NameOfMultiCampusOrganization,
-    IdentificationNumberOfMultiCampusOrganization,
-    CoreBasedStatisticalArea,
-    CBSATypeMetropolitanMicropolitan,
-    CombinedStatisticalArea,
-    NewEnglandCityAndTownArea,
-    FIPSCountyCode,
-    CountyName,
-    StateAnd114thCongressionalDistrictID,
-    LongitudeLocation,
-    LatitudeLocation,
-    NCESGroupCategory,
-    DataFeedbackReport, 
-    AcademicYear, 
+  WHEN NOT MATCHED THEN
+INSERT
+  (
+	InstitutionIdentifier,
+	InstitutionName,
+	InstitutionNameAlias,
+	StreetAddress,
+	City,
+	State,
+	ZipCode,
+	StateCode,
+	EconomicAnalysisRegions,
+	ChiefAdministrator,
+	ChiefAdministratorTitle,
+	TelephoneNumber,
+	EmployerIdentificationNumber,
+	DunBradstreetNumbers,
+	PostsecondaryEducationIDNumber,
+	TitleIVEligibilityIndicatorCode,
+	SectorOfInstitution,
+	LevelOfInstitution,
+	ControlOfInstitution,
+	HighestLevelOfOffering,
+	UndergraduateOffering,
+	GraduateOffering,
+	HighestDegreeOffered,
+	DegreeGrantingStatus,
+	HistoricallyBlackCollegeOrUniversity,
+	InstitutionHasHospital,
+	InstitutionGrantsMedicalDegree,
+	TribalCollege,
+	DegreeOfUrbanization,
+	InstitutionOpenToGeneralPublic,
+	StatusOfInstitution,
+	UnitidForMergedSchools,
+	YearInstitutionWasDeletedFromIPEDS,
+	DateInstitutionClosed,
+	InstitutionIsActive,
+	PrimarilyPostsecondaryIndicator,
+	PostsecondaryInstitutionIndicator,
+	PostsecondaryAndTitleIvInstitutionIndicator,
+	ReportingMethodForStudentCharges,
+	InstitutionalCategory,
+	LandGrantInstitution,
+	InstitutionSizeCategory,
+	MultiCampusOrganization,
+	NameOfMultiCampusOrganization,
+	IdentificationNumberOfMultiCampusOrganization,
+	CoreBasedStatisticalArea,
+	CBSATypeMetropolitanMicropolitan,
+	CombinedStatisticalArea,
+	NewEnglandCityAndTownArea,
+	FIPSCountyCode,
+	CountyName,
+	StateAnd114thCongressionalDistrictID,
+	LongitudeLocation,
+	LatitudeLocation,
+	NCESGroupCategory,
+	DataFeedbackReport,
+	AcademicYear,
 	CarnegieClassification,
 	WebAddress, 
-    RecordCreateDateTime)
-VALUES  (
-    S.InstitutionIdentifier,
-    S.InstitutionName,
-    S.InstitutionNameAlias,
-    S.StreetAddress,
-    S.City,
-    S.State,
-    S.ZipCode,
-    S.StateCode,
-    S.EconomicAnalysisRegions,
-    S.ChiefAdministrator,
-    S.ChiefAdministratorTitle,
-    S.TelephoneNumber,
-    S.EmployerIdentificationNumber,
-    S.DunBradstreetNumbers,
-    S.PostsecondaryEducationIDNumber,
-    S.TitleIVEligibilityIndicatorCode,
-    S.SectorOfInstitution,
-    S.LevelOfInstitution,
-    S.ControlOfInstitution,
-    S.HighestLevelOfOffering,
-    S.UndergraduateOffering,
-    S.GraduateOffering,
-    S.HighestDegreeOffered,
-    S.DegreeGrantingStatus,
-    S.HistoricallyBlackCollegeOrUniversity,
-    S.InstitutionHasHospital,
-    S.InstitutionGrantsMedicalDegree,
-    S.TribalCollege,
-    S.DegreeOfUrbanization,
-    S.InstitutionOpenToGeneralPublic,
-    S.StatusOfInstitution,
-    S.UnitidForMergedSchools,
-    S.YearInstitutionWasDeletedFromIPEDS,
-    S.DateInstitutionClosed,
-    S.InstitutionIsActive,
-    S.PrimarilyPostsecondaryIndicator,
-    S.PostsecondaryInstitutionIndicator,
-    S.PostsecondaryAndTitleIvInstitutionIndicator,
-    S.ReportingMethodForStudentCharges,
-    S.InstitutionalCategory,
-    S.LandGrantInstitution,
-    S.InstitutionSizeCategory,
-    S.MultiCampusOrganization,
-    S.NameOfMultiCampusOrganization,
-    S.IdentificationNumberOfMultiCampusOrganization,
-    S.CoreBasedStatisticalArea,
-    S.CBSATypeMetropolitanMicropolitan,
-    S.CombinedStatisticalArea,
-    S.NewEnglandCityAndTownArea,
-    S.FIPSCountyCode,
-    S.CountyName,
-    S.StateAnd114thCongressionalDistrictID,
-    S.LongitudeLocation,
-    S.LatitudeLocation,
-    S.NCESGroupCategory,
-    S.DataFeedbackReport, 
-    S.AcademicYear, 
+	RecordCreateDateTime)
+VALUES
+  (
+	S.InstitutionIdentifier,
+	S.InstitutionName,
+	S.InstitutionNameAlias,
+	S.StreetAddress,
+	S.City,
+	S.State,
+	S.ZipCode,
+	S.StateCode,
+	S.EconomicAnalysisRegions,
+	S.ChiefAdministrator,
+	S.ChiefAdministratorTitle,
+	S.TelephoneNumber,
+	S.EmployerIdentificationNumber,
+	S.DunBradstreetNumbers,
+	S.PostsecondaryEducationIDNumber,
+	S.TitleIVEligibilityIndicatorCode,
+	S.SectorOfInstitution,
+	S.LevelOfInstitution,
+	S.ControlOfInstitution,
+	S.HighestLevelOfOffering,
+	S.UndergraduateOffering,
+	S.GraduateOffering,
+	S.HighestDegreeOffered,
+	S.DegreeGrantingStatus,
+	S.HistoricallyBlackCollegeOrUniversity,
+	S.InstitutionHasHospital,
+	S.InstitutionGrantsMedicalDegree,
+	S.TribalCollege,
+	S.DegreeOfUrbanization,
+	S.InstitutionOpenToGeneralPublic,
+	S.StatusOfInstitution,
+	S.UnitidForMergedSchools,
+	S.YearInstitutionWasDeletedFromIPEDS,
+	S.DateInstitutionClosed,
+	S.InstitutionIsActive,
+	S.PrimarilyPostsecondaryIndicator,
+	S.PostsecondaryInstitutionIndicator,
+	S.PostsecondaryAndTitleIvInstitutionIndicator,
+	S.ReportingMethodForStudentCharges,
+	S.InstitutionalCategory,
+	S.LandGrantInstitution,
+	S.InstitutionSizeCategory,
+	S.MultiCampusOrganization,
+	S.NameOfMultiCampusOrganization,
+	S.IdentificationNumberOfMultiCampusOrganization,
+	S.CoreBasedStatisticalArea,
+	S.CBSATypeMetropolitanMicropolitan,
+	S.CombinedStatisticalArea,
+	S.NewEnglandCityAndTownArea,
+	S.FIPSCountyCode,
+	S.CountyName,
+	S.StateAnd114thCongressionalDistrictID,
+	S.LongitudeLocation,
+	S.LatitudeLocation,
+	S.NCESGroupCategory,
+	S.DataFeedbackReport,
+	S.AcademicYear	,
 	OBJECT_CONSTRUCT (
-			  'AcademicInstitutionIdentifier',InstitutionIdentifier,
-			  'CarnegieClassification2000' ,CarnegieClassification2000,
-			  'CarnegieClassification20052010Basic' ,CarnegieClassification20052010Basic,
-			  'CarnegieClassification2015Basic' ,CarnegieClassification2015Basic,
-			  'CarnegieClassification2015UndergraduateProgram' ,CarnegieClassification2015UndergraduateProgram,
-			  'CarnegieClassification2015GraduateProgram' ,CarnegieClassification2015GraduateProgram,
-			  'CarnegieClassification2015UndergraduateProfile' ,CarnegieClassification2015UndergraduateProfile,
-			  'CarnegieClassification2015EnrollmentProfile' ,CarnegieClassification2015EnrollmentProfile,
-			  'CarnegieClassification2015SizeSetting' ,CarnegieClassification2015SizeSetting,
-			  'CarnegieClassification2018Basic',CarnegieClassification2018Basic,
-			  'CarnegieClassification2018UndergraduateProgram' ,CarnegieClassification2018UndergraduateProgram,
-			  'CarnegieClassification2018GraduateProgram',CarnegieClassification2018GraduateProgram,
-			  'CarnegieClassification2018UndergraduateProfile' ,CarnegieClassification2018UndergraduateProfile,
-			  'CarnegieClassification2018EnrollmentProfile',CarnegieClassification2018EnrollmentProfile,
-			  'CarnegieClassification2018SizeSetting' ,CarnegieClassification2018SizeSetting
-			  ) ,
+	  'AcademicInstitutionIdentifier',S.InstitutionIdentifier,
+	  'CarnegieClassification2000' ,S.CarnegieClassification2000,
+	  'CarnegieClassification20052010Basic' ,S.CarnegieClassification20052010Basic,
+	  'CarnegieClassification2015Basic' ,S.CarnegieClassification2015Basic,
+	  'CarnegieClassification2015UndergraduateProgram' ,S.CarnegieClassification2015UndergraduateProgram,
+	  'CarnegieClassification2015GraduateProgram' ,S.CarnegieClassification2015GraduateProgram,
+	  'CarnegieClassification2015UndergraduateProfile' ,S.CarnegieClassification2015UndergraduateProfile,
+	  'CarnegieClassification2015EnrollmentProfile' ,S.CarnegieClassification2015EnrollmentProfile,
+	  'CarnegieClassification2015SizeSetting' ,S.CarnegieClassification2015SizeSetting
+	   ),
 	OBJECT_CONSTRUCT (		
-			'AcademicInstitutionIdentifier',InstitutionIdentifier,	   
-			'InstitutionsWebAddress',InstitutionsWebAddress,
-			'AdmissionsOfficeWebAddress',AdmissionsOfficeWebAddress,
-			'FinancialAidOfficeWebAddress',FinancialAidOfficeWebAddress,
-			'OnlineApplicationWebAddress',OnlineApplicationWebAddress,
-			'NetPriceCalculatorWebAddress',NetPriceCalculatorWebAddress,
-			'VeteransMilitaryServiceTuitionPoliciesWebAddress',VeteransMilitaryServiceTuitionPoliciesWebAddress,
-			'StudentRightAthleteGraduationRateWebAddress',StudentRightAthleteGraduationRateWebAddress,
-			'DisabilityServicesWebAddress',DisabilityServicesWebAddress
-		       ),			
-    CURRENT_TIMESTAMP
-	);
-`
+		'AcademicInstitutionIdentifier',S.InstitutionIdentifier,	   
+		'InstitutionsWebAddress',S.InstitutionsWebAddress,
+		'AdmissionsOfficeWebAddress',S.AdmissionsOfficeWebAddress,
+		'FinancialAidOfficeWebAddress',S.FinancialAidOfficeWebAddress,
+		'OnlineApplicationWebAddress',S.OnlineApplicationWebAddress,
+		'NetPriceCalculatorWebAddress',S.NetPriceCalculatorWebAddress,
+		'VeteransMilitaryServiceTuitionPoliciesWebAddress',S.VeteransMilitaryServiceTuitionPoliciesWebAddress,
+		'StudentRightAthleteGraduationRateWebAddress',S.StudentRightAthleteGraduationRateWebAddress,
+		'DisabilityServicesWebAddress',S.DisabilityServicesWebAddress
+		       ),
+			CURRENT_TIMESTAMP
+		  );
+	`
 try {
     snowflake.execute (
       {sqlText: sql_command}

@@ -1,5 +1,5 @@
 CREATE OR REPLACE PROCEDURE 
-	pr_od_AcademicInstitutionLoadFromStaging (YEAR FLOAT)
+	pr_od_AcademicInstitution_Load (YEAR FLOAT)
 RETURNS STRING
 LANGUAGE javascript
 EXECUTE AS OWNER
