@@ -1,1 +1,0 @@
-put file://C:\snowflake\data\input\CodeMappingData.txt @IPEDS_CM;
