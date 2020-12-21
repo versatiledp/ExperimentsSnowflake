@@ -1,0 +1,112 @@
+DROP TABLE IF EXISTS IPEDS_Workflow;
+CREATE TABLE IPEDS_Workflow
+( StageName STRING,
+  ProcedureName STRING,
+  TargetTableName STRING,
+  ExecutionOrder NUMBER
+);
+
+DROP TABLE IF EXISTS IPEDS_Audit;
+CREATE TABLE IPEDS_Audit
+( StageName STRING,
+  ProcedureName STRING,
+  TargetTableName STRING,
+  PreRowCount NUMBER,
+  PostRowCount NUMBER,
+  ProcessDateTime DATETIME default current_timestamp
+);
+
+TRUNCATE TABLE IPEDS_Workflow;
+SELECT top 10 * FROM information_schema.procedures where procedure_name like 'PR_%STG%';
+
+INSERT INTO IPEDS_Workflow (StageName,ProcedureName,TargetTableName,ExecutionOrder)
+SELECT 'Od_HDR' AS StageName,'pr_stg_AdmissionStat_FromStagedFile(@Year)' AS ProcedureName,'stg_AdmissionStat' TargetTableName,1 ExecutionOrder UNION ALL
+SELECT 'SL_HDR' AS StageName,'pr_AdmissionStat_LoadFromStagingTable(@Year)' AS ProcedureName,'AdmissionStat' TargetTableName,2 ExecutionOrder UNION ALL
+SELECT 'OD_CM' AS StageName,'pr_stg_CodeMapping_LoadFromStagedFile()' AS ProcedureName,'' TargetTableName,12 ExecutionOrder UNION ALL
+SELECT 'SL_CM' AS StageName,'pr_CodeMapping_LoadFromStagingTable()' AS ProcedureName,'' TargetTableName,13 ExecutionOrder
+                             
+;
+
+/*SELECT 'Od_HDR' AS StageName,'pr_stg_AcademicInstitution_LoadFromStagedFile(@Year)' AS ProcedureName,'stg_AcademicInstitution' TargetTableName,1 ExecutionOrder UNION ALL
+SELECT 'SL_HDR' AS StageName,'pr_AcademicInstitution_LoadFromStagingTable(@Year)' AS ProcedureName,'AcademicInstitution' TargetTableName,2 ExecutionOrder UNION ALL
+SELECT 'Od_EFFY' AS StageName,'pr_stg_Enrollment_LoadFromStagedFile(@Year)' AS ProcedureName,'stg_Enrollment' TargetTableName,3 ExecutionOrder UNION ALL
+SELECT 'SL_EFFY' AS StageName,'pr_Enrollment_LoadFromStagingTable(@Year)' AS ProcedureName,'Enrollment' TargetTableName,4 ExecutionOrder UNION ALL
+SELECT 'OD_IC' AS StageName,'pr_stg_InstitutionalCharge_Json_LoadFromStagedFile(@Year)' AS ProcedureName,'stg_InstitutionalCharge_JSON' TargetTableName,5 ExecutionOrder UNION ALL
+SELECT 'SL_IC' AS StageName,'pr_InstitutionalCharge_Json_LoadFromStagingTable(@Year)' AS ProcedureName,'InstitutionalCharge_Json' TargetTableName,6 ExecutionOrder UNION ALL
+SELECT 'SL_ICBranch' AS StageName,'pr_InstitutionalChargeByAcademicBranch_Json_LoadFromStagingTable(@Year)' AS ProcedureName,'InstitutionalChargeByAcademicBranch_Json' TargetTableName,7 ExecutionOrder UNION ALL
+SELECT 'SL_ICPublication' AS StageName,'pr_InstitutionalChargeByPublication_Json_LoadFromStagingTable(@Year)' AS ProcedureName,'InstitutionalChargeByPublication_Json' TargetTableName,8 ExecutionOrder UNION ALL
+SELECT 'SL_ICCategory' AS StageName,'pr_InstitutionalChargeByCategory_Json_LoadFromStagingTable(@Year)' AS ProcedureName,'InstitutionalChargeByCategory_Json' TargetTableName,9 ExecutionOrder UNION ALL
+SELECT 'OD_ADM' AS StageName,'pr_stg_AdmissionStat_FromStagedFile(@Year)' AS ProcedureName,'stg_AdmissionStat' TargetTableName,10 ExecutionOrder UNION ALL
+SELECT 'SL_ADM' AS StageName,'pr_AdmissionStat_LoadFromStagingTable(@Year)' AS ProcedureName,'AdmissionStat' TargetTableName,11 ExecutionOrder UNION ALL
+SELECT 'OD_CM' AS StageName,'pr_stg_CodeMapping_LoadFromStagedFile()' AS ProcedureName,'' TargetTableName,12 ExecutionOrder UNION ALL
+SELECT 'SL_CM' AS StageName,'pr_CodeMapping_LoadFromStagingTable()' AS ProcedureName,'' TargetTableName,13 ExecutionOrder
+;*/
+;
+SELECT * FROM IPEDS_Workflow ORDER BY ExecutionOrder;
+
+CREATE OR REPLACE PROCEDURE pr_IPEDS_Process(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+AS
+$$
+//1:Academic Institution,2:Enrollment,3:Institution charges,4:Admision Stat,5: Code Mapping
+// Get the list of procedures and target table names to process.
+var sql_WF = `SELECT StageName,ProcedureName,TargetTableName,ExecutionOrder 
+              FROM IPEDS_Workflow ORDER BY ExecutionOrder`;
+CmdSql = {sqlText:sql_WF};
+StmtSql = snowflake.createStatement(CmdSql);
+rsSql = StmtSql.execute();
+var Queries = '';
+// Execute each procedure and get Pre and Post rowcount if target table is provided.
+try{
+    while (rsSql.next()){
+        var strTargetTable  = rsSql.getColumnValue("TARGETTABLENAME");
+        var preCount = '';
+        var postCount = '';
+        var Sql_RowCount = ``
+      var stmtRowCount = '';
+      var rsPreRowCount;
+      var rsPostRowCount;
+// Get Pre rowcount if the target table is provided.
+      if  (strTargetTable != '')
+      {
+        Sql_RowCount = `SELECT COUNT(1) As Counts FROM `+ rsSql.getColumnValue("TARGETTABLENAME") +` WHERE AcademicYear = ` + YEAR.toString()+`;`;
+        stmtRowCount = snowflake.createStatement({sqlText: Sql_RowCount});
+        rsPreRowCount = stmtRowCount.execute();
+        rsPreRowCount.next();
+        preCount = rsPreRowCount.getColumnValue("COUNTS");
+      }
+// Execute load procedure and pass parameter value if required.
+      var stmtProcessData = snowflake.createStatement({sqlText:`CALL `+ rsSql.getColumnValue("PROCEDURENAME").replace('@Year',YEAR.toString()) });
+      stmtProcessData.execute();
+
+// Get Post rowcount if the target table is provided.
+      if (Sql_RowCount !='')
+      {
+        rsPostRowCount = stmtRowCount.execute();
+        rsPostRowCount.next();
+        postCount = rsPostRowCount.getColumnValue("COUNTS")
+      }
+      rsPreRowCount.next();
+      rsPostRowCount.next();
+// Prepare audit details with procedure executed, target table aling with Pre and Post rowcount.
+      var sql_Audit = `INSERT INTO IPEDS_Audit (StageName,ProcedureName,TargetTableName,PreRowCount,PostRowCount)
+      VALUES ('` + rsSql.getColumnValue("STAGENAME") + `','`+ rsSql.getColumnValue("PROCEDURENAME").replace('@Year',YEAR.toString())
+      +`','`+ rsSql.getColumnValue("TARGETTABLENAME") + `',`+ preCount +`,`+ postCount +`)`;
+      
+      var stmt = snowflake.createStatement({sqlText:sql_Audit});
+      stmt.execute();
+    }
+}
+catch(err)
+{
+  return "Failed:"+err +`-->`+Queries;
+}
+return 'Success';
+$$;
+
+CALL pr_IPEDS_Process(2017::FLOAT);
+
+truncate table IPEDS_Audit;
+SELECT * FROM IPEDS_Audit;
+
