@@ -1,0 +1,101 @@
+
+Ingesting Snowflake stage
+========================================================
+
+Internal stage area for IPEDS
+----------------------------------------------------
+
+The following diagram presents our files in different formats are used to copy in internal storage.
+
+We are going to load different file formats like CSV, JSON, parquet, and ORC. 
+Internal named stage needs to be created for each of the file formats before we load data.
+
+Create internal stage area IPEDS
+----------------------------------------------------
+
+Create the file formats & stage area for text file 
+1. tab delimited 
+2. comma separated with no header
+3. comma separated with header
+
+.. include:: \code\chapter04\01_createStagedflatformat.sql
+   :code: 
+ 
+--- Create json file format & stage area
+
+.. include:: \code\chapter04\02_createStagedjsonformat.sql
+   :code: 
+
+--- Create ORC file format & stage area
+
+.. include:: \code\chapter04\03_createStagedORCformat.sql
+   :code: 
+
+--- Create parquet file format & stage area 
+
+.. include:: \code\chapter04\04_createStagedParquetformat.sql
+   :code: 
+
+Once these formats are created, we can check available formats to load snowflake internal stage area with
+
+.. code-block:: rst
+
+	-- Check the formats and stage area available in snowflake
+	
+Summary
+
+We have created an internal named stage in the snowflake to ingest CSV files, parquet file, ORC file, and json files.
+
+We will use the following stage area to load or raw files.
+
+•	IPEDS_ADM 
+•	IPEDS_EFFY
+•	IPEDS_CM 
+•	IPEDS_HD 
+•	IPEDS_IC   
+  
+
+Load the files to internal stage for IPEDS
+----------------------------------------------------
+
+Connect to snowflake database using SnowSQL CLI and load the following files to staging area.
+
+Load academic institution (HDR) files - These are CSV files
+
+.. include:: \code\chapter04\05_LoadCSVfilestoStaged.sql
+   :code: 
+
+Load enrollment (EFFY) files  - These are json files
+
+.. include:: \code\chapter04\06_LoadJasonfilestoStaged.sql
+   :code: 
+
+
+Load institutional (IC) charges files  - These are ORC files. All the partitioned are loaded into specific folder of orc staging area
+
+.. include:: \code\chapter04\07_LoadORCfilestoStaged.sql
+   :code: 
+
+Load admission files  - These are parquet files. All the partitioned are loaded into specific folder of parquet staging area
+
+.. include:: \code\chapter04\08_LoadParquetfilestoStaged.sql
+   :code: 
+
+	
+Load code mapping files  - These are csv files.
+
+.. include:: \code\chapter04\09_LoadOtherfilestoStaged.sql
+   :code: 
+
+Confirm stage file availability in snowflake
+
+Once these files are loaded to stage area, we can check availability of these data files in the internal stage area as below
+
+.. code-block:: rst
+
+	list command to check the files
+
+
+
+
+

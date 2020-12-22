@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ingesting Snowflake stage &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Attribute mapping" href="Chap05_AttributeMapping.html" />
+    <link rel="prev" title="Snowflake stage area" href="Chap03_SnowflakeStageArea.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="ingesting-snowflake-stage">
+<h1>Ingesting Snowflake stage<a class="headerlink" href="#ingesting-snowflake-stage" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="internal-stage-area-for-ipeds">
+<h2>Internal stage area for IPEDS<a class="headerlink" href="#internal-stage-area-for-ipeds" title="Permalink to this headline">¶</a></h2>
+<p>The following diagram presents our files in different formats are used to copy in internal storage.</p>
+<p>We are going to load different file formats like CSV, JSON, parquet, and ORC.
+Internal named stage needs to be created for each of the file formats before we load data.</p>
+</div>
+<div class="section" id="create-internal-stage-area-ipeds">
+<h2>Create internal stage area IPEDS<a class="headerlink" href="#create-internal-stage-area-ipeds" title="Permalink to this headline">¶</a></h2>
+<p>Create the file formats &amp; stage area for text file
+1. tab delimited
+2. comma separated with no header
+3. comma separated with header</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>
+<span class="o">--</span> <span class="n">Number</span> <span class="n">of</span> <span class="n">header</span> <span class="n">lines</span> <span class="n">at</span> <span class="n">the</span> <span class="n">start</span> <span class="n">of</span> <span class="n">the</span> <span class="n">file</span><span class="o">.</span>
+<span class="o">--</span> <span class="n">The</span> <span class="n">COPY</span> <span class="n">command</span> <span class="n">skips</span> <span class="n">header</span> <span class="n">lines</span> <span class="n">when</span> <span class="n">loading</span> <span class="n">data</span>
+<span class="o">--</span> <span class="n">All</span> <span class="n">these</span> <span class="n">file</span> <span class="n">formats</span> <span class="n">can</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">create</span> <span class="n">different</span> <span class="n">stage</span> <span class="n">areas</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span>  <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_CSVSkipHeaderTabDelimited</span>
+                        <span class="n">TYPE</span> <span class="o">=</span>   <span class="n">CSV</span>
+                        <span class="n">FIELD_DELIMITER</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>  <span class="n">COMPRESSION</span> <span class="o">=</span> <span class="n">AUTO</span>
+                        <span class="n">SKIP_HEADER</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span>  <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_CSVSkipHeaderCommaDelimited</span>
+                        <span class="n">TYPE</span> <span class="o">=</span>   <span class="n">CSV</span>
+                        <span class="n">FIELD_DELIMITER</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span>  <span class="n">COMPRESSION</span> <span class="o">=</span> <span class="n">AUTO</span>
+                        <span class="n">SKIP_HEADER</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">The</span> <span class="n">COPY</span> <span class="n">command</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">skip</span> <span class="nb">any</span> <span class="n">lines</span><span class="o">.</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span>  <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_CSVHeaderTabDelimited</span>
+                        <span class="n">TYPE</span> <span class="o">=</span>   <span class="n">CSV</span>
+                        <span class="n">FIELD_DELIMITER</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span>  <span class="n">COMPRESSION</span> <span class="o">=</span> <span class="n">AUTO</span>
+                        <span class="n">SKIP_HEADER</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span>  <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_CSVHeaderCommaDelimited</span>
+                        <span class="n">TYPE</span> <span class="o">=</span>   <span class="n">CSV</span>
+                        <span class="n">FIELD_DELIMITER</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span>  <span class="n">COMPRESSION</span> <span class="o">=</span> <span class="n">AUTO</span>
+                        <span class="n">SKIP_HEADER</span> <span class="o">=</span> <span class="mi">0</span> <span class="n">encoding</span> <span class="o">=</span> <span class="s1">&#39;iso-8859-1&#39;</span>
+                        <span class="n">FIELD_OPTIONALLY_ENCLOSED_BY</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">create</span> <span class="n">satge</span> <span class="n">area</span> <span class="n">to</span> <span class="n">load</span> <span class="n">csv</span> <span class="n">files</span> <span class="k">for</span> <span class="n">the</span> <span class="n">project</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">STAGE</span> <span class="n">IPEDS_HD</span> <span class="n">FILE_FORMAT</span>
+                        <span class="o">=</span> <span class="n">ff_IPEDS_CSVHeaderCommaDelimited</span><span class="p">;</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">STAGE</span> <span class="n">IPEDS_CM</span> <span class="n">FILE_FORMAT</span>
+                        <span class="o">=</span> <span class="n">ff_IPEDS_CSVSkipHeaderTabDelimited</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>— Create json file format &amp; stage area</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span> <span class="n">Create</span> <span class="n">file</span> <span class="nb">format</span> <span class="n">to</span> <span class="n">load</span> <span class="n">json</span> <span class="n">file</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_Json</span>
+                <span class="n">TYPE</span> <span class="o">=</span><span class="n">JSON</span> <span class="n">TRIM_SPACE</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">Create</span> <span class="n">stage</span> <span class="n">area</span> <span class="n">to</span> <span class="n">load</span> <span class="n">json</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">stage</span> <span class="n">IPEDS_EFFY</span> <span class="n">FILE_FORMAT</span> <span class="o">=</span> <span class="n">ff_IPEDS_Json</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>— Create ORC file format &amp; stage area</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span> <span class="n">Create</span> <span class="n">file</span> <span class="nb">format</span> <span class="n">to</span> <span class="n">load</span> <span class="n">ORC</span> <span class="n">file</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_ORC</span>
+                        <span class="n">TYPE</span> <span class="o">=</span><span class="n">ORC</span> <span class="n">TRIM_SPACE</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">Create</span> <span class="n">stage</span> <span class="n">area</span> <span class="n">to</span> <span class="n">load</span> <span class="n">ORC</span> <span class="n">file</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">stage</span> <span class="n">IPEDS_IC</span> <span class="n">FILE_FORMAT</span> <span class="o">=</span> <span class="n">ff_IPEDS_ORC</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>— Create parquet file format &amp; stage area</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">--</span> <span class="n">Create</span> <span class="n">Parquet</span> <span class="n">file</span> <span class="nb">format</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span>  <span class="n">FILE</span> <span class="n">FORMAT</span> <span class="n">ff_IPEDS_Parquet</span>
+                        <span class="n">TYPE</span> <span class="o">=</span><span class="n">PARQUET</span> <span class="n">TRIM_SPACE</span> <span class="o">=</span> <span class="n">TRUE</span><span class="p">;</span>
+<span class="o">--</span> <span class="n">Create</span> <span class="n">stage</span> <span class="n">area</span> <span class="n">to</span> <span class="n">load</span> <span class="n">Parquet</span> <span class="n">file</span>
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">stage</span> <span class="n">IPEDS_ADM</span> <span class="n">FILE_FORMAT</span> <span class="o">=</span> <span class="n">ff_IPEDS_Parquet</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Once these formats are created, we can check available formats to load snowflake internal stage area with</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>-- Check the formats and stage area available in snowflake
+</pre></div>
+</div>
+<p>Summary</p>
+<p>We have created an internal named stage in the snowflake to ingest CSV files, parquet file, ORC file, and json files.</p>
+<p>We will use the following stage area to load or raw files.</p>
+<ul class="simple">
+<li><p>IPEDS_ADM</p></li>
+<li><p>IPEDS_EFFY</p></li>
+<li><p>IPEDS_CM</p></li>
+<li><p>IPEDS_HD</p></li>
+<li><p>IPEDS_IC</p></li>
+</ul>
+</div>
+<div class="section" id="load-the-files-to-internal-stage-for-ipeds">
+<h2>Load the files to internal stage for IPEDS<a class="headerlink" href="#load-the-files-to-internal-stage-for-ipeds" title="Permalink to this headline">¶</a></h2>
+<p>Connect to snowflake database using SnowSQL CLI and load the following files to staging area.</p>
+<p>Load academic institution (HDR) files - These are CSV files</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">HD2017</span><span class="o">.</span><span class="n">csv</span> <span class="nd">@IPEDS_HD</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">HD2018</span><span class="o">.</span><span class="n">csv</span> <span class="nd">@IPEDS_HD</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">HD2019</span><span class="o">.</span><span class="n">csv</span> <span class="nd">@IPEDS_HD</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Load enrollment (EFFY) files  - These are json files</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">effy2017_rv</span><span class="o">.</span><span class="n">json</span> <span class="nd">@IPEDS_EFFY</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">effy2018_rv</span><span class="o">.</span><span class="n">json</span> <span class="nd">@IPEDS_EFFY</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">effy2019_rv</span><span class="o">.</span><span class="n">json</span> <span class="nd">@IPEDS_EFFY</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Load institutional (IC) charges files  - These are ORC files. All the partitioned are loaded into specific folder of orc staging area</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">ic2017_ay_orc</span>\<span class="o">*.*</span> <span class="nd">@IPEDS_IC</span><span class="o">/</span><span class="mi">2017</span><span class="o">/</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">ic2018_ay_orc</span>\<span class="o">*.*</span> <span class="nd">@IPEDS_IC</span><span class="o">/</span><span class="mi">2018</span><span class="o">/</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">ic2019_ay_orc</span>\<span class="o">*.*</span> <span class="nd">@IPEDS_IC</span><span class="o">/</span><span class="mi">2019</span><span class="o">/</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Load admission files  - These are parquet files. All the partitioned are loaded into specific folder of parquet staging area</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">adm2017</span><span class="o">.</span><span class="n">parquet</span>\<span class="o">*.*</span> <span class="nd">@IPEDS_ADM</span><span class="o">/</span><span class="mi">2017</span><span class="o">/</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">adm2018</span><span class="o">.</span><span class="n">parquet</span>\<span class="o">*.*</span> <span class="nd">@IPEDS_ADM</span><span class="o">/</span><span class="mi">2018</span><span class="o">/</span><span class="p">;</span>
+<span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">adm2019</span><span class="o">.</span><span class="n">parquet</span>\<span class="o">*.*</span> <span class="nd">@IPEDS_ADM</span><span class="o">/</span><span class="mi">2019</span><span class="o">/</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Load code mapping files  - These are csv files.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">put</span> <span class="n">file</span><span class="p">:</span><span class="o">//</span><span class="n">C</span><span class="p">:</span>\<span class="n">snowflake</span>\<span class="n">data</span>\<span class="nb">input</span>\<span class="n">CodeMappingData</span><span class="o">.</span><span class="n">txt</span> <span class="nd">@IPEDS_CM</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Confirm stage file availability in snowflake</p>
+<p>Once these files are loaded to stage area, we can check availability of these data files in the internal stage area as below</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>list command to check the files
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data platform overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data load software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake stage area</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Ingesting Snowflake stage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#internal-stage-area-for-ipeds">Internal stage area for IPEDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-internal-stage-area-ipeds">Create internal stage area IPEDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#load-the-files-to-internal-stage-for-ipeds">Load the files to internal stage for IPEDS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute mapping</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap03_SnowflakeStageArea.html" title="previous chapter">Snowflake stage area</a></li>
+      <li>Next: <a href="Chap05_AttributeMapping.html" title="next chapter">Attribute mapping</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
