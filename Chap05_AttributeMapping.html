@@ -1,0 +1,192 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attribute Mapping &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CSV Ingestion" href="Chap06_AcademicInstitutionIngestion.html" />
+    <link rel="prev" title="Ingesting Snowflake Stage" href="Chap04_IngestingDataSnowflakeStage.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="attribute-mapping">
+<h1>Attribute Mapping<a class="headerlink" href="#attribute-mapping" title="Permalink to this headline">¶</a></h1>
+<p>We will learn the core data mapping between the source system and different transformation layers</p>
+<div class="section" id="academic-institution">
+<h2>Academic Institution<a class="headerlink" href="#academic-institution" title="Permalink to this headline">¶</a></h2>
+<p>Institutional Characteristics Header files [HDR] are in CSV format.
+These files are directly ingested into Snowflake staging from the source system.
+ELT layer defines the schema for the CSV file with data types.
+The following diagram displays mapping between the CSV attribute and the stage layer.
+THe stage layer is used to process data for destination layer with additional transformations.</p>
+<div class="figure align-default">
+<img alt="images/Chap05_01_csvIngestion.jpg" src="images/Chap05_01_csvIngestion.jpg" />
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mapping between the source system and Snowflake for these files is at available   <a class="reference external" href="Mapping/AcademicInstitute.htm">Academic institute layout</a></p>
+</div>
+</div>
+<div class="section" id="enrollment">
+<h2>Enrollment<a class="headerlink" href="#enrollment" title="Permalink to this headline">¶</a></h2>
+<p>JSON is an open standard file format, and data interchange format, that uses human-readable text to store and transmit data objects consisting of attribute–value pairs and array data types. It is a very common data format, with a diverse range of applications, such as serving as a replacement for XML in AJAX systems.
+In our use case – we are assuming Enrollment files are ingested (EFFY files) in the JSON format directly to Snowflake.
+ELT layer defines the mapped attributes for JSON attributes with data types. The following diagram displays mapping between JSON attribute and stage layer. The Stage layer is used to process data for the destination layer with additional transformation.</p>
+<div class="figure align-center">
+<img alt="images/Chap05_02_jsonIngestion.jpg" src="images/Chap05_02_jsonIngestion.jpg" />
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mapping between the source system and Snowflake for these files is available at   <a class="reference external" href="Mapping/Enrollment.htm">Enrollment layout</a></p>
+</div>
+</div>
+<div class="section" id="institutional-charges">
+<h2>Institutional Charges<a class="headerlink" href="#institutional-charges" title="Permalink to this headline">¶</a></h2>
+<p>The Optimized Row Columnar (ORC) file format provides a highly efficient way to store Hive data. Using ORC files improves performance when Hive is reading, writing, and processing data. It ideally stores data in compact form and enables skipping over irrelevant parts without the need for large, complex, or manually maintained indices.
+In our use case, – we are assuming Institutional Charge text files are ingested (ICAY files) in HDFS. They are processed through Hive. Output of the big data processing (ORC files) are used to load in Snowflake.
+ELT layer defines the schema for ORC file with data types. The following diagram displays mapping between the ORC attribute and the stage layer. The stage layer is used to process data for the destination layer with additional transformations and normalization.</p>
+<div class="figure align-center">
+<img alt="images/Chap05_03_orcIngestion.jpg" src="images/Chap05_03_orcIngestion.jpg" />
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mapping between source system and Snowflake for these files is available   <a class="reference external" href="Mapping/InstitutionCharges.htm">Institution charges layout</a></p>
+</div>
+</div>
+<div class="section" id="admission-data">
+<h2>Admission data<a class="headerlink" href="#admission-data" title="Permalink to this headline">¶</a></h2>
+<p>Parquet, an open-source file format for Hadoop stores nested data structures in a flat columnar format.
+Compared to a traditional approach where data is stored in a row-oriented approach, Parquet is more efficient
+in terms of storage and performance. It is especially useful for queries that read specific columns from a wide table.
+Parquet provides optimizations to speed up queries and is a far more efficient file format than CSV or JSON, supported by many
+data processing systems. Spark SQL provides support for both reading and writing Parquet files that automatically
+capture the schema of the original data. The following diagram lays out the architecture from data source to Parquet file.
+In our use case – we are assuming - IPEDs admission data text files are ingested (ADM files) in HDFS and processed through the Spark.
+Output of the spark processing (Parquet files) are used to process in Snowflake.
+ELT layer defines the schema for Parquet file with data types. The following diagram displays mapping between
+the Parquet attribute and the stage layer. The stage layer is used to process data for the final destination layer with additional transformations.</p>
+<div class="figure align-center">
+<img alt="images/Chap05_04_ParquetIngestion.jpg" src="images/Chap05_04_ParquetIngestion.jpg" />
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mapping between source system and Snowflake for these files is available  at <a class="reference external" href="Mapping/AdmissionStat.htm">Admission stat layout</a></p>
+</div>
+</div>
+<div class="section" id="reference-lookup-data">
+<h2>Reference/lookup data<a class="headerlink" href="#reference-lookup-data" title="Permalink to this headline">¶</a></h2>
+<p>Code value lookup files are CSV formatted. These files are directly ingested into Snowflake staging from source system.
+ELT layer defines the schema for the CSV file with data types.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Mapping between source system and Snowflake for these files is available at  <a class="reference external" href="Mapping/CodeValue.htm">Lookup data layout</a></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Attribute Mapping</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#academic-institution">Academic Institution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enrollment">Enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#institutional-charges">Institutional Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#admission-data">Admission data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reference-lookup-data">Reference/lookup data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap04_IngestingDataSnowflakeStage.html" title="previous chapter">Ingesting Snowflake Stage</a></li>
+      <li>Next: <a href="Chap06_AcademicInstitutionIngestion.html" title="next chapter">CSV Ingestion</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

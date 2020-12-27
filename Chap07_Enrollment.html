@@ -1,0 +1,725 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Json Ingestion &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ORC Ingestion" href="Chap08_InstitutionalCharges.html" />
+    <link rel="prev" title="CSV Ingestion" href="Chap06_AcademicInstitutionIngestion.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="json-ingestion">
+<h1>Json Ingestion<a class="headerlink" href="#json-ingestion" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="enrollment">
+<h2>Enrollment<a class="headerlink" href="#enrollment" title="Permalink to this headline">¶</a></h2>
+<p>This section covers the information about enrollments in various institutions for the years 2017, 2018 and 2019.
+The enrollments are categorized by race, ethnicity and sex.
+The data files for enrollments are in the JSON format and the staged file is invoked using &#64;IPEDS_EFFY.</p>
+<p>We will learn about</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>JSON ingestion</p></li>
+<li><p>Transforming data using the Snowflake JavaScripts stored procedures</p></li>
+<li><p>Calling stored procedures</p></li>
+<li></li>
+</ul>
+</div></blockquote>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT
+         S.$1:EFFYLEV::INTEGER  AS LevelOfStudent
+        ,S.$1:EFY2MORM::INTEGER AS TwoOrMoreRacesMen
+        ,S.$1:EFY2MORT::INTEGER AS TwoOrMoreRacesTotal
+        ,S.$1:EFY2MORW::INTEGER AS TwoOrMoreRacesWomen
+        ,S.$1:EFYAIANM::INTEGER AS AmericanIndianOrAlaskaNativeMen
+        ,S.$1:EFYAIANT::INTEGER AS AmericanIndianOrAlaskaNativeTotal
+        ,S.$1:EFYAIANW::INTEGER AS AmericanIndianOrAlaskaNativeWomen
+        ,S.$1:EFYASIAM::INTEGER AS AsianMen
+        ,S.$1:EFYASIAT::INTEGER AS AsianTotal
+        ,S.$1:EFYASIAW::INTEGER AS AsianWomen
+        ,S.$1:EFYBKAAM::INTEGER AS AfricanAmericanMen
+        ,S.$1:EFYBKAAT::INTEGER AS AfricanAmericanTotal
+        ,S.$1:EFYBKAAW::INTEGER AS AfricanAmericanWomen
+        ,S.$1:EFYHISPM::INTEGER AS HispanicOrLatinoMen
+        ,S.$1:EFYHISPT::INTEGER AS HispanicOrLatinoTotal
+        ,S.$1:EFYHISPW::INTEGER AS HispanicOrLatinoWomen
+        ,S.$1:EFYNHPIM::INTEGER AS HawaiianPacificIslanderMen
+        ,S.$1:EFYNHPIT::INTEGER AS HawaiianPacificIslanderTotal
+        ,S.$1:EFYNHPIW::INTEGER AS HawaiianPacificIslanderWomen
+        ,S.$1:EFYNRALM::INTEGER AS NonresidentAlienMen
+        ,S.$1:EFYNRALT::INTEGER AS NonresidentAlienTotal
+        ,S.$1:EFYNRALW::INTEGER AS NonresidentAlienWomen
+        ,S.$1:EFYTOTLM::INTEGER AS TotalMen
+        ,S.$1:EFYTOTLT::INTEGER AS Total
+        ,S.$1:EFYTOTLW::INTEGER AS TotalWomen
+        ,S.$1:EFYUNKNM::INTEGER AS RaceEthnicityUnknownMen
+        ,S.$1:EFYUNKNT::INTEGER AS RaceEthnicityUnknownTotal
+        ,S.$1:EFYUNKNW::INTEGER AS RaceEthnicityUnknownWomen
+        ,S.$1:EFYWHITM::INTEGER AS WhiteMen
+        ,S.$1:EFYWHITT::INTEGER AS WhiteTotal
+        ,S.$1:EFYWHITW::INTEGER AS WhiteWomen
+        ,S.$1:LSTUDY::INTEGER AS OriginalLevelOfStudyOnSurveyForm
+        ,S.$1:UNITID::INTEGER AS InstitutionIdentifier
+        ,S.$1:XEFY2MOM::STRING AS ImputationVarTwoOrMoreRacesMen
+        ,S.$1:XEFY2MOT::STRING AS ImputationVarTwoOrMoreRacesTotal
+        ,S.$1:XEFY2MOW::STRING AS ImputationVarTwoOrMoreRacesWomen
+        ,S.$1:XEFYAIAM::STRING AS ImputationVarAmericanIndianOrAlaskaNativeMen
+        ,S.$1:XEFYAIAT::STRING AS ImputationVarAmericanIndianOrAlaskaNativeTotal
+        ,S.$1:XEFYAIAW::STRING AS ImputationVarAmericanIndianOrAlaskaNativeWomen
+        ,S.$1:XEFYASIM::STRING AS ImputationVarAsianMen
+        ,S.$1:XEFYASIT::STRING AS ImputationVarAsianTotal
+        ,S.$1:XEFYASIW::STRING AS ImputationVarAsianWomen
+        ,S.$1:XEFYBKAM::STRING AS ImputationVarAfricanAmericanMen
+        ,S.$1:XEFYBKAT::STRING AS ImputationVarAfricanAmericanTotal
+        ,S.$1:XEFYBKAW::STRING AS ImputationVarAfricanAmericanWomen
+        ,S.$1:XEFYHISM::STRING AS ImputationVarHispanicOrLatinoMen
+        ,S.$1:XEFYHIST::STRING AS ImputationVarHispanicOrLatinoTotal
+        ,S.$1:XEFYHISW::STRING AS ImputationVarHispanicOrLatinoWomen
+        ,S.$1:XEFYNHPM::STRING AS ImputationVarHawaiianPacificIslanderMen
+        ,S.$1:XEFYNHPT::STRING AS ImputationVarHawaiianPacificIslanderTotal
+        ,S.$1:XEFYNHPW::STRING AS ImputationVarHawaiianPacificIslanderWomen
+        ,S.$1:XEFYWHIM::STRING AS ImputationVarWhiteMen
+        ,S.$1:XEFYWHIT::STRING AS ImputationVarWhiteTotal
+        ,S.$1:XEFYWHIW::STRING AS ImputationVarWhiteWomen
+        ,S.$1:XEYNRALM::STRING AS ImputationVarNonresidentAlienMen
+        ,S.$1:XEYNRALT::STRING AS ImputationVarNonresidentAlienTotal
+        ,S.$1:XEYNRALW::STRING AS ImputationVarNonresidentAlienWomen
+        ,S.$1:XEYTOTLM::STRING AS ImputationVarTotalMen
+        ,S.$1:XEYTOTLT::STRING AS ImputationVarTotal
+        ,S.$1:XEYTOTLW::STRING AS ImputationVarTotalWomen
+        ,S.$1:XEYUNKNM::STRING AS ImputationVarRaceEthnicityUnknownMen
+        ,S.$1:XEYUNKNT::STRING AS ImputationVarRaceEthnicityUnknownTotal
+        ,S.$1:XEYUNKNW::STRING AS ImputationVarRaceEthnicityUnknownWomen
+FROM @IPEDS_EFFY S
+WHERE RIGHT(REPLACE(S.metadata$filename,&#39;_rv.json.gz&#39;,&#39;&#39;),4) = 2017;
+</pre></div>
+</div>
+</div>
+<div class="section" id="operational-data-od-table-for-enrollment">
+<h2>Operational data (OD) table for enrollment<a class="headerlink" href="#operational-data-od-table-for-enrollment" title="Permalink to this headline">¶</a></h2>
+<p>For storing the enrollments from the staged file, we have added a operational table called od_Enrollment.
+Here is the CREATE command for the staging table.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">TABLE</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">od_Enrollment</span><span class="p">;</span>
+
+<span class="n">CREATE</span> <span class="n">TABLE</span> <span class="n">od_Enrollment</span> <span class="p">(</span>
+  <span class="n">LevelOfStudent</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TwoOrMoreRacesMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TwoOrMoreRacesTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TwoOrMoreRacesWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AmericanIndianOrAlaskaNativeMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AmericanIndianOrAlaskaNativeTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AmericanIndianOrAlaskaNativeWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AsianMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AsianTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AsianWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AfricanAmericanMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AfricanAmericanTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AfricanAmericanWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HispanicOrLatinoMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HispanicOrLatinoTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HispanicOrLatinoWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HawaiianPacificIslanderMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HawaiianPacificIslanderTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HawaiianPacificIslanderWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">NonresidentAlienMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">NonresidentAlienTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">NonresidentAlienWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TotalMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">Total</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TotalWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">RaceEthnicityUnknownMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">RaceEthnicityUnknownTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">RaceEthnicityUnknownWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">WhiteMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">WhiteTotal</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">WhiteWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OriginalLevelOfStudyOnSurveyForm</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">ImputationVarTwoOrMoreRacesMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarTwoOrMoreRacesTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarTwoOrMoreRacesWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAmericanIndianOrAlaskaNativeMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAmericanIndianOrAlaskaNativeTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAmericanIndianOrAlaskaNativeWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAsianMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAsianTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAsianWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAfricanAmericanMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAfricanAmericanTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarAfricanAmericanWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarHispanicOrLatinoMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarHispanicOrLatinoTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarHispanicOrLatinoWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarHawaiianPacificIslanderMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarHawaiianPacificIslanderTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarHawaiianPacificIslanderWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarWhiteMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarWhiteTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarWhiteWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarNonresidentAlienMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarNonresidentAlienTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarNonresidentAlienWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarTotalMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarTotalWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarRaceEthnicityUnknownMen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarRaceEthnicityUnknownTotal</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">ImputationVarRaceEthnicityUnknownWomen</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">AcademicYear</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">IngestedFileName</span> <span class="n">STRING</span><span class="p">,</span>
+  <span class="n">RowNumber</span> <span class="n">INTEGER</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Once the staging table is created,
+we will be populating the staging table with data from the source system, coming in the JSON file.
+We are using the stored procedures based ELT based approach for loading the OD tables.
+The stored procedure pr_od_Enrollment_Load used a parameter YEAR.
+Here is the Snowflake script for creating the stored procedure <strong>pr_od_Enrollment_Load</strong>.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
+        pr_od_Enrollment_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+AS
+//Delete and Insert data to fact
+$$
+var sql_Command = `
+INSERT INTO od_Enrollment (
+  LevelOfStudent,
+  TwoOrMoreRacesMen,
+  TwoOrMoreRacesTotal,
+  TwoOrMoreRacesWomen,
+  AmericanIndianOrAlaskaNativeMen,
+  AmericanIndianOrAlaskaNativeTotal,
+  AmericanIndianOrAlaskaNativeWomen,
+  AsianMen,
+  AsianTotal,
+  AsianWomen,
+  AfricanAmericanMen,
+  AfricanAmericanTotal,
+  AfricanAmericanWomen,
+  HispanicOrLatinoMen,
+  HispanicOrLatinoTotal,
+  HispanicOrLatinoWomen,
+  HawaiianPacificIslanderMen,
+  HawaiianPacificIslanderTotal,
+  HawaiianPacificIslanderWomen,
+  NonresidentAlienMen,
+  NonresidentAlienTotal,
+  NonresidentAlienWomen,
+  TotalMen,
+  Total,
+  TotalWomen,
+  RaceEthnicityUnknownMen,
+  RaceEthnicityUnknownTotal,
+  RaceEthnicityUnknownWomen,
+  WhiteMen,
+  WhiteTotal,
+  WhiteWomen,
+  OriginalLevelOfStudyOnSurveyForm,
+  InstitutionIdentifier,
+  ImputationVarTwoOrMoreRacesMen,
+  ImputationVarTwoOrMoreRacesTotal,
+  ImputationVarTwoOrMoreRacesWomen,
+  ImputationVarAmericanIndianOrAlaskaNativeMen,
+  ImputationVarAmericanIndianOrAlaskaNativeTotal,
+  ImputationVarAmericanIndianOrAlaskaNativeWomen,
+  ImputationVarAsianMen,
+  ImputationVarAsianTotal,
+  ImputationVarAsianWomen,
+  ImputationVarAfricanAmericanMen,
+  ImputationVarAfricanAmericanTotal,
+  ImputationVarAfricanAmericanWomen,
+  ImputationVarHispanicOrLatinoMen,
+  ImputationVarHispanicOrLatinoTotal,
+  ImputationVarHispanicOrLatinoWomen,
+  ImputationVarHawaiianPacificIslanderMen,
+  ImputationVarHawaiianPacificIslanderTotal,
+  ImputationVarHawaiianPacificIslanderWomen,
+  ImputationVarWhiteMen,
+  ImputationVarWhiteTotal,
+  ImputationVarWhiteWomen,
+  ImputationVarNonresidentAlienMen,
+  ImputationVarNonresidentAlienTotal,
+  ImputationVarNonresidentAlienWomen,
+  ImputationVarTotalMen,
+  ImputationVarTotal,
+  ImputationVarTotalWomen,
+  ImputationVarRaceEthnicityUnknownMen,
+  ImputationVarRaceEthnicityUnknownTotal,
+  ImputationVarRaceEthnicityUnknownWomen,
+  AcademicYear,
+  IngestedFileName,
+  RowNumber
+                )
+
+        SELECT
+         S.$1:EFFYLEV::INTEGER  AS LevelOfStudent
+        ,S.$1:EFY2MORM::INTEGER AS TwoOrMoreRacesMen
+        ,S.$1:EFY2MORT::INTEGER AS TwoOrMoreRacesTotal
+        ,S.$1:EFY2MORW::INTEGER AS TwoOrMoreRacesWomen
+        ,S.$1:EFYAIANM::INTEGER AS AmericanIndianOrAlaskaNativeMen
+        ,S.$1:EFYAIANT::INTEGER AS AmericanIndianOrAlaskaNativeTotal
+        ,S.$1:EFYAIANW::INTEGER AS AmericanIndianOrAlaskaNativeWomen
+        ,S.$1:EFYASIAM::INTEGER AS AsianMen
+        ,S.$1:EFYASIAT::INTEGER AS AsianTotal
+        ,S.$1:EFYASIAW::INTEGER AS AsianWomen
+        ,S.$1:EFYBKAAM::INTEGER AS AfricanAmericanMen
+        ,S.$1:EFYBKAAT::INTEGER AS AfricanAmericanTotal
+        ,S.$1:EFYBKAAW::INTEGER AS AfricanAmericanWomen
+        ,S.$1:EFYHISPM::INTEGER AS HispanicOrLatinoMen
+        ,S.$1:EFYHISPT::INTEGER AS HispanicOrLatinoTotal
+        ,S.$1:EFYHISPW::INTEGER AS HispanicOrLatinoWomen
+        ,S.$1:EFYNHPIM::INTEGER AS HawaiianPacificIslanderMen
+        ,S.$1:EFYNHPIT::INTEGER AS HawaiianPacificIslanderTotal
+        ,S.$1:EFYNHPIW::INTEGER AS HawaiianPacificIslanderWomen
+        ,S.$1:EFYNRALM::INTEGER AS NonresidentAlienMen
+        ,S.$1:EFYNRALT::INTEGER AS NonresidentAlienTotal
+        ,S.$1:EFYNRALW::INTEGER AS NonresidentAlienWomen
+        ,S.$1:EFYTOTLM::INTEGER AS TotalMen
+        ,S.$1:EFYTOTLT::INTEGER AS Total
+        ,S.$1:EFYTOTLW::INTEGER AS TotalWomen
+        ,S.$1:EFYUNKNM::INTEGER AS RaceEthnicityUnknownMen
+        ,S.$1:EFYUNKNT::INTEGER AS RaceEthnicityUnknownTotal
+        ,S.$1:EFYUNKNW::INTEGER AS RaceEthnicityUnknownWomen
+        ,S.$1:EFYWHITM::INTEGER AS WhiteMen
+        ,S.$1:EFYWHITT::INTEGER AS WhiteTotal
+        ,S.$1:EFYWHITW::INTEGER AS WhiteWomen
+        ,S.$1:LSTUDY::INTEGER AS OriginalLevelOfStudyOnSurveyForm
+        ,S.$1:UNITID::INTEGER AS InstitutionIdentifier
+        ,S.$1:XEFY2MOM::STRING AS ImputationVarTwoOrMoreRacesMen
+        ,S.$1:XEFY2MOT::STRING AS ImputationVarTwoOrMoreRacesTotal
+        ,S.$1:XEFY2MOW::STRING AS ImputationVarTwoOrMoreRacesWomen
+        ,S.$1:XEFYAIAM::STRING AS ImputationVarAmericanIndianOrAlaskaNativeMen
+        ,S.$1:XEFYAIAT::STRING AS ImputationVarAmericanIndianOrAlaskaNativeTotal
+        ,S.$1:XEFYAIAW::STRING AS ImputationVarAmericanIndianOrAlaskaNativeWomen
+        ,S.$1:XEFYASIM::STRING AS ImputationVarAsianMen
+        ,S.$1:XEFYASIT::STRING AS ImputationVarAsianTotal
+        ,S.$1:XEFYASIW::STRING AS ImputationVarAsianWomen
+        ,S.$1:XEFYBKAM::STRING AS ImputationVarAfricanAmericanMen
+        ,S.$1:XEFYBKAT::STRING AS ImputationVarAfricanAmericanTotal
+        ,S.$1:XEFYBKAW::STRING AS ImputationVarAfricanAmericanWomen
+        ,S.$1:XEFYHISM::STRING AS ImputationVarHispanicOrLatinoMen
+        ,S.$1:XEFYHIST::STRING AS ImputationVarHispanicOrLatinoTotal
+        ,S.$1:XEFYHISW::STRING AS ImputationVarHispanicOrLatinoWomen
+        ,S.$1:XEFYNHPM::STRING AS ImputationVarHawaiianPacificIslanderMen
+        ,S.$1:XEFYNHPT::STRING AS ImputationVarHawaiianPacificIslanderTotal
+        ,S.$1:XEFYNHPW::STRING AS ImputationVarHawaiianPacificIslanderWomen
+        ,S.$1:XEFYWHIM::STRING AS ImputationVarWhiteMen
+        ,S.$1:XEFYWHIT::STRING AS ImputationVarWhiteTotal
+        ,S.$1:XEFYWHIW::STRING AS ImputationVarWhiteWomen
+        ,S.$1:XEYNRALM::STRING AS ImputationVarNonresidentAlienMen
+        ,S.$1:XEYNRALT::STRING AS ImputationVarNonresidentAlienTotal
+        ,S.$1:XEYNRALW::STRING AS ImputationVarNonresidentAlienWomen
+        ,S.$1:XEYTOTLM::STRING AS ImputationVarTotalMen
+        ,S.$1:XEYTOTLT::STRING AS ImputationVarTotal
+        ,S.$1:XEYTOTLW::STRING AS ImputationVarTotalWomen
+        ,S.$1:XEYUNKNM::STRING AS ImputationVarRaceEthnicityUnknownMen
+        ,S.$1:XEYUNKNT::STRING AS ImputationVarRaceEthnicityUnknownTotal
+        ,S.$1:XEYUNKNW::STRING AS ImputationVarRaceEthnicityUnknownWomen
+        ,RIGHT(REPLACE(S.metadata$filename,&#39;_rv.json.gz&#39;,&#39;&#39;),4)::INTEGER AS AcademicYear
+    ,S.metadata$filename::VARCHAR AS IngestedFileName
+    ,S.metadata$file_row_number::INTEGER AS RowNumber
+    FROM @IPEDS_EFFY S
+    WHERE RIGHT(REPLACE(S.metadata$filename,&#39;_rv.json.gz&#39;,&#39;&#39;),4) = `+ YEAR.toString()
+
+    try
+    {
+        snowflake.execute(
+            {sqlText: sql_Command}
+        );
+    }
+    catch(err)
+    {
+        return &quot;Failed :&quot; + err;
+    }
+    return &quot;success&quot;
+$$;
+</pre></div>
+</div>
+<p>We can load data for all these 3 years. Here are the commands to call the stored procedure.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRUNCATE</span> <span class="n">TABLE</span> <span class="n">od_Enrollment</span><span class="p">;</span>
+
+<span class="n">CALL</span> <span class="n">pr_od_Enrollment_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_od_Enrollment_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_od_Enrollment_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="enrollment-load">
+<h2>Enrollment Load<a class="headerlink" href="#enrollment-load" title="Permalink to this headline">¶</a></h2>
+<p>We have created a table Enrollment in the servicing or consuming layer.
+Here is the script for creating the table Enrollment.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">Enrollment</span> <span class="p">(</span>
+  <span class="n">AcademicInstitutionUniqueDWSID</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AcademicYear</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">LevelOfStudent</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OriginalLevelOfStudyOnSurveyForm</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TotalMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TotalWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">WhiteMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">WhiteWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AfricanAmericanMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AfricanAmericanWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AmericanIndianOrAlaskaNativeMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AmericanIndianOrAlaskaNativeWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AsianMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AsianWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HispanicOrLatinoMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HispanicOrLatinoWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HawaiianPacificIslanderMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">HawaiianPacificIslanderWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">NonresidentAlienMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">NonresidentAlienWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TwoOrMoreRacesMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">TwoOrMoreRacesWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">RaceEthnicityUnknownMen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">RaceEthnicityUnknownWomen</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">ImputationVarTotalMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarTotalWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarWhiteMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarWhiteWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarAfricanAmericanMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarAfricanAmericanWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarAmericanIndianOrAlaskaNativeMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarAmericanIndianOrAlaskaNativeWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarHispanicOrLatinoMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarHispanicOrLatinoWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarAsianMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarAsianWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarHawaiianPacificIslanderMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarHawaiianPacificIslanderWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarNonresidentAlienMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarNonresidentAlienWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarTwoOrMoreRacesMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarTwoOrMoreRacesWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarRaceEthnicityUnknownMen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">ImputationVarRaceEthnicityUnknownWomen</span> <span class="n">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+  <span class="n">VariablesImputedCount</span> <span class="n">INTEGER</span><span class="p">,</span>  <span class="o">--</span> <span class="n">WHERE</span> <span class="n">ImputationVar</span> <span class="n">NOT</span> <span class="n">R</span> <span class="n">then</span> <span class="n">count</span>
+  <span class="n">VariablesReportedCount</span> <span class="n">INTEGER</span><span class="p">,</span>  <span class="o">--</span> <span class="n">Where</span> <span class="n">ImputationVar</span> <span class="ow">is</span> <span class="n">R</span>
+  <span class="n">ImputationVarPercent</span> <span class="n">NUMERIC</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span> <span class="o">--</span> <span class="n">VariablesImputedCount</span><span class="o">/</span><span class="n">VariablesImputedCount</span><span class="o">+</span><span class="n">VariablesReportedCount</span>
+  <span class="n">ReportedVarPercent</span> <span class="n">NUMERIC</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span> <span class="o">--</span> <span class="n">VariablesReportedCount</span><span class="o">/</span><span class="n">VariablesImputedCount</span><span class="o">+</span><span class="n">VariablesReportedCount</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The following stored procedure <strong>pr_Enrollment_Load</strong> is used for loading
+this servicing layer table. SP loads data for specific years based on the parameter passed in to it.
+Each time this stored procedure is called, it deletes the records from the Enrollment table
+for that year and re-inserts them from od_Enrollment for the year.</p>
+<p>While the servicing layer load ,data transformation is added. The imputation variable determines whether the value in the numeric field
+is imputed or reported. We are interested to understand,the total number of imputed variable counts
+and reported variable counts.
+Those values are stored in
+<strong>VariablesReportedCount</strong> and  <strong>VariablesImputedCount</strong>. Based on the values of  VariablesReportedCount
+and VariablesImputedCount, the percentage of imputed or reported
+is calculated. Those percentages are stored in <strong>ImputationVarPercent</strong>, and <strong>ReportedVarPercent</strong></p>
+<p>The following stored procedure is used to load data to the servicing layer.
+The additional data transformation needed to get the above variables, are computed in the same SP.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
+                pr_Enrollment_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+AS
+$$
+var sql_DelCommand =`DELETE FROM Enrollment WHERE AcademicYear = ` + YEAR.toString() +`;`
+
+var sql_Command = `
+   INSERT INTO Enrollment (
+    AcademicInstitutionUniqueDWSID,
+    InstitutionIdentifier,
+    AcademicYear ,
+    LevelOfStudent ,
+    OriginalLevelOfStudyOnSurveyForm ,
+    TotalMen,
+    TotalWomen,
+    WhiteMen,
+    WhiteWomen,
+    AfricanAmericanMen,
+    AfricanAmericanWomen ,
+    AmericanIndianOrAlaskaNativeMen,
+    AmericanIndianOrAlaskaNativeWomen ,
+    AsianMen,
+    AsianWomen,
+    HispanicOrLatinoMen,
+    HispanicOrLatinoWomen ,
+    HawaiianPacificIslanderMen,
+    HawaiianPacificIslanderWomen,
+    NonresidentAlienMen,
+    NonresidentAlienWomen,
+    TwoOrMoreRacesMen,
+    TwoOrMoreRacesWomen,
+    RaceEthnicityUnknownMen,
+    RaceEthnicityUnknownWomen,
+    ImputationVarTotalMen ,
+    ImputationVarTotalWomen,
+    ImputationVarWhiteMen ,
+    ImputationVarWhiteWomen,
+    ImputationVarAfricanAmericanMen ,
+    ImputationVarAfricanAmericanWomen,
+    ImputationVarAmericanIndianOrAlaskaNativeMen ,
+    ImputationVarAmericanIndianOrAlaskaNativeWomen,
+    ImputationVarHispanicOrLatinoMen ,
+    ImputationVarHispanicOrLatinoWomen,
+    ImputationVarAsianMen ,
+    ImputationVarAsianWomen ,
+    ImputationVarHawaiianPacificIslanderMen ,
+    ImputationVarHawaiianPacificIslanderWomen,
+    ImputationVarNonresidentAlienMen ,
+    ImputationVarNonresidentAlienWomen ,
+    ImputationVarTwoOrMoreRacesMen ,
+    ImputationVarTwoOrMoreRacesWomen ,
+    ImputationVarRaceEthnicityUnknownMen ,
+    ImputationVarRaceEthnicityUnknownWomen,
+    VariablesImputedCount,
+    VariablesReportedCount
+)
+SELECT
+  IFNULL(D.AcademicInstitutionUniqueDWSID,-1),
+  S.InstitutionIdentifier,
+  S.AcademicYear,
+  S.LevelOfStudent,
+  S.OriginalLevelOfStudyOnSurveyForm,
+  S.TotalMen,
+  S.TotalWomen,
+  S.WhiteMen,
+  S.WhiteWomen,
+  S.AfricanAmericanMen,
+  S.AfricanAmericanWomen,
+  S.AmericanIndianOrAlaskaNativeMen,
+  S.AmericanIndianOrAlaskaNativeWomen,
+  S.AsianMen,
+  S.AsianWomen,
+  S.HispanicOrLatinoMen,
+  S.HispanicOrLatinoWomen,
+  S.HawaiianPacificIslanderMen,
+  S.HawaiianPacificIslanderWomen,
+  S.NonresidentAlienMen,
+  S.NonresidentAlienWomen,
+  S.TwoOrMoreRacesMen,
+  S.TwoOrMoreRacesWomen,
+  S.RaceEthnicityUnknownMen,
+  S.RaceEthnicityUnknownWomen,
+  S.ImputationVarTotalMen,
+  S.ImputationVarTotalWomen,
+  S.ImputationVarWhiteMen,
+  S.ImputationVarWhiteWomen,
+  S.ImputationVarAfricanAmericanMen,
+  S.ImputationVarAfricanAmericanWomen,
+  S.ImputationVarAmericanIndianOrAlaskaNativeMen,
+  S.ImputationVarAmericanIndianOrAlaskaNativeWomen,
+  S.ImputationVarAsianMen,
+  S.ImputationVarAsianWomen,
+  S.ImputationVarHispanicOrLatinoMen,
+  S.ImputationVarHispanicOrLatinoWomen,
+  S.ImputationVarHawaiianPacificIslanderMen,
+  S.ImputationVarHawaiianPacificIslanderWomen,
+  S.ImputationVarNonresidentAlienMen,
+  S.ImputationVarNonresidentAlienWomen,
+  S.ImputationVarTwoOrMoreRacesMen,
+  S.ImputationVarTwoOrMoreRacesWomen,
+  S.ImputationVarRaceEthnicityUnknownMen,
+  S.ImputationVarRaceEthnicityUnknownWomen,
+  --- calculation
+  (CASE WHEN S.ImputationVarTotalMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarTotalWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarWhiteMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarWhiteWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarAfricanAmericanMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarAfricanAmericanWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarAmericanIndianOrAlaskaNativeMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarAmericanIndianOrAlaskaNativeWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarAsianMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarAsianWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarHispanicOrLatinoMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarHispanicOrLatinoWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarNonresidentAlienMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarNonresidentAlienWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarHawaiianPacificIslanderMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarHawaiianPacificIslanderWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarTwoOrMoreRacesMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarTwoOrMoreRacesWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarRaceEthnicityUnknownMen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END +
+      CASE WHEN S.ImputationVarRaceEthnicityUnknownWomen &lt;&gt; &#39;R&#39; THEN 1 ELSE 0 END) AS VariablesImputedCount,
+   (CASE WHEN S.ImputationVarTotalMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarTotalWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarWhiteMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarWhiteWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarAfricanAmericanMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarAfricanAmericanWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarAmericanIndianOrAlaskaNativeMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarAmericanIndianOrAlaskaNativeWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarAsianMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarAsianWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarHispanicOrLatinoMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarHispanicOrLatinoWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarNonresidentAlienMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarNonresidentAlienWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarHawaiianPacificIslanderMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarHawaiianPacificIslanderWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarTwoOrMoreRacesMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarTwoOrMoreRacesWomen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarRaceEthnicityUnknownMen = &#39;R&#39; THEN 1 ELSE 0 END +
+        CASE WHEN S.ImputationVarRaceEthnicityUnknownWomen = &#39;R&#39; THEN 1 ELSE 0 END) AS VariablesReportedCount
+FROM
+    od_Enrollment S
+INNER JOIN AcademicInstitution D ON S.InstitutionIdentifier = D.InstitutionIdentifier
+WHERE S.ACADEMICYEAR = `+ YEAR.toString()
+
+var sql_UpdCommand = `
+   UPDATE Enrollment
+   SET  ImputationVarPercent  = VariablesImputedCount/(VariablesImputedCount+VariablesReportedCount)
+        ,ReportedVarPercent = VariablesReportedCount/(VariablesImputedCount+VariablesReportedCount)
+   WHERE ACADEMICYEAR = `+ YEAR.toString()
+
+var arrSqlCmd =[3];
+    arrSqlCmd[0] = sql_DelCommand
+    arrSqlCmd[1] = sql_Command
+    arrSqlCmd[2] = sql_UpdCommand
+
+    var sql_ExecCommand =&#39;&#39;;
+    for (var j=0;j&lt;arrSqlCmd.length; j++)
+    {
+        sql_ExecCommand = arrSqlCmd[j]
+        try
+        {
+            snowflake.execute(
+                {sqlText: sql_ExecCommand}
+            );
+      }
+        catch(err)
+        {
+            return &quot;Failed :&quot; + err;
+        }
+    }
+    return &quot;success&quot;
+$$;
+</pre></div>
+</div>
+<p>The above SP can be called to process data for 2017,2018, and 2019.
+The code below shows the call to the 06_CR_Enrollment_Load.sql</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRUNCATE</span> <span class="n">TABLE</span> <span class="n">Enrollment</span><span class="p">;</span>
+<span class="n">CALL</span> <span class="n">pr_Enrollment_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_Enrollment_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_Enrollment_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>In this chapter we’ve discussed the enrollments in various institutions by year.
+We talked about creating a staging table from data files which are in a JSON format.
+We also discussed the servicing layer table and the stored procedure used to process it from the staging table.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<blockquote>
+<div><p>Code available to download  at <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/source/code/chapter07">chapter07</a>.</p>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Json Ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#enrollment">Enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operational-data-od-table-for-enrollment">Operational data (OD) table for enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#enrollment-load">Enrollment Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap06_AcademicInstitutionIngestion.html" title="previous chapter">CSV Ingestion</a></li>
+      <li>Next: <a href="Chap08_InstitutionalCharges.html" title="next chapter">ORC Ingestion</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

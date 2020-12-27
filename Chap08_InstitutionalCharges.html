@@ -1,0 +1,1915 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ORC Ingestion &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ORC ingestion - 2" href="Chap08_InstitutionalChargesJson.html" />
+    <link rel="prev" title="Json Ingestion" href="Chap07_Enrollment.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="orc-ingestion">
+<h1>ORC Ingestion<a class="headerlink" href="#orc-ingestion" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="institutional-charges">
+<h2>Institutional Charges<a class="headerlink" href="#institutional-charges" title="Permalink to this headline">¶</a></h2>
+<p>This section covers the data ingestion about tuition fees charged by the numerous institutions for
+various courses and segment of students admitted during 2017, 2018 and 2019 academic years.
+The data files received on institutional charges  are in ORC format.
+Dataset also categorize fees for graduate programs
+like Medicine, Dentistry, Pharmacy, Law etc. as different attributes within academic institution charge records.</p>
+<p>Fees are also categorized for In-State and Out-of-State students.
+Books/supply , campus room, publication charges as well as other expenses are also available here.</p>
+<p>The information in this large file can be broadly categorized into 4 groups described below.</p>
+<div class="section" id="institutional-charge-general">
+<h3>Institutional charge (General)<a class="headerlink" href="#institutional-charge-general" title="Permalink to this headline">¶</a></h3>
+<p>This cross section of attributes cover average tuition/required fees, per-credit fees charged by educational institiutes.
+Fees varies significantly from state to state, public vs private, and ranking of institiutes (demand vs supply).</p>
+</div>
+<div class="section" id="institutional-charge-by-academic-branch">
+<h3>Institutional charge by academic branch<a class="headerlink" href="#institutional-charge-by-academic-branch" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>The details of fees by academic subjects like Chiropractic, Dentistry, Medicine, Optometry,</dt><dd><p>OsteopathicMedicine, Pharmacy, Podiatry, VeterinaryMedicine, and Law by various institutions
+for In-State and Out_of_State students are available in this section.</p>
+</dd>
+</dl>
+</div>
+<div class="section" id="institutional-charge-by-residency-type">
+<h3>Institutional charge by residency type<a class="headerlink" href="#institutional-charge-by-residency-type" title="Permalink to this headline">¶</a></h3>
+<p>The residency type determines different fees structure in public  uninversities for the same courses. Normally instate students
+are charged less than out of state. These set of attributes will provide insight around those variations.</p>
+</div>
+<div class="section" id="institutional-charge-by-category">
+<h3>Institutional charge by category<a class="headerlink" href="#institutional-charge-by-category" title="Permalink to this headline">¶</a></h3>
+<p>Various fees like On-Campus boarding, books/supplies, and other
+on-campus expenses are available in this section of the file.</p>
+<p>We will learn how to</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Use ingested ORC files from the staged Snowflake region</p></li>
+<li><p>Transform data using the Snowflake JavaScript stored procedures</p></li>
+<li><p>Call the  stored procedures</p></li>
+<li><p>Perform transformation using Unpivot and JSON conversation</p></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="staged-file-for-institution-charges">
+<h2>Staged File for Institution Charges<a class="headerlink" href="#staged-file-for-institution-charges" title="Permalink to this headline">¶</a></h2>
+<p>The staged file <strong>&#64;IPEDS_IC</strong> is used for keeping track of various institution charges.
+We can retrieve the details of a particular year as below.
+Here is the Snowflake SQL query to select all the rows for the year 2017 from staged ORC data.
+Please note that the columns are selected using $1 :&lt;column_name&gt;.
+This is because data files used are in ORC format. The staged file is a denormalized data structure, where different attributes
+are added to represent differences in these fee structures. While loading data to the final servicing layer, data architects may
+consider to normlize these attributes in a meaningful way. In this book, we have followed some normalization while data is loaded
+into the servicing layer.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT
+          $1:UNITID     :: VARCHAR AS InstitutionIdentifier,
+          $1:TUITION1   :: INTEGER AS InDistrictAverageTuitionFullTimeUndergraduates,
+          $1:FEE1       :: INTEGER AS InDistrictRequiredFeesFullTimeUndergraduates,
+          $1:HRCHG1     :: INTEGER AS InDistrictPerCreditHourChargeForPartTimeUndergraduates,
+          $1:TUITION2   :: INTEGER AS InStateAverageTuitionFullTimeUndergraduates,
+          $1:FEE2       :: INTEGER AS InStateRequiredFeesFullTimeUndergraduates,
+          $1:HRCHG2     :: INTEGER AS InStatePerCreditHourChargeForPartTimeUndergraduates,
+          $1:TUITION3   :: INTEGER AS OutOfStateAverageTuitionFullTimeUndergraduates,
+          $1:FEE3       :: INTEGER AS OutOfStateRequiredFeesFullTimeUndergraduates,
+          $1:HRCHG3     :: INTEGER AS OutOfStatePerCreditHourChargeForPartTimeUndergraduates,
+          $1:TUITION5   :: INTEGER AS InDistrictAverageTuitionFullTimeGraduates,
+          $1:FEE5       :: INTEGER AS InDistrictRequiredFeesFullTimeGraduates,
+          $1:HRCHG5     :: INTEGER AS InDistrictPerCreditHourChargePartTimeGraduates,
+          $1:TUITION6   :: INTEGER AS InStateAverageTuitionFullTimeGraduates,
+          $1:FEE6       :: INTEGER AS InStateRequiredFeesFullTimeGraduates,
+          $1:HRCHG6     :: INTEGER AS InStatePerCreditHourChargePartTimeGraduates,
+          $1:TUITION7   :: INTEGER AS OutOfStateAverageTuitionFullTimeGraduates,
+          $1:FEE7       :: INTEGER AS OutOfStateRequiredFeesFullTimeGraduates,
+          $1:HRCHG7     :: INTEGER AS OutOfStatePerCreditHourChargePartTimeGraduate,
+          $1:ISPROF1    :: INTEGER AS Chiropractic_InStateTuition,
+          $1:ISPFEE1    :: INTEGER AS Chiropractic_InStateRequiredFees,
+          $1:OSPROF1    :: INTEGER AS Chiropractic_OutOfStateTuition,
+          $1:OSPFEE1    :: INTEGER AS Chiropractic_OutOfStateRequiredFees,
+          $1:ISPROF2    :: INTEGER AS Dentistry_InStateTuition,
+          $1:ISPFEE2    :: INTEGER AS Dentistry_InStateRequiredFees,
+          $1:OSPROF2    :: INTEGER AS Dentistry_OutOfStateTuition,
+          $1:OSPFEE2    :: INTEGER AS Dentistry_OutOfStateRequiredFees,
+          $1:ISPROF3    :: INTEGER AS Medicine_InStateTuition,
+          $1:ISPFEE3    :: INTEGER AS Medicine_InStateRequiredFees,
+          $1:OSPROF3    :: INTEGER AS Medicine_OutOfStateTuition,
+          $1:OSPFEE3    :: INTEGER AS Medicine_OutOfStateRequiredFees,
+          $1:ISPROF4    :: INTEGER AS Optometry_InStateTuition,
+          $1:ISPFEE4    :: INTEGER AS Optometry_InStateRequiredFees,
+          $1:OSPROF4    :: INTEGER AS Optometry_OutOfStateTuition,
+          $1:OSPFEE4    :: INTEGER AS Optometry_OutOfStateRequiredFees,
+          $1:ISPROF5    :: INTEGER AS OsteopathicMedicine_InStateTuition,
+          $1:ISPFEE5    :: INTEGER AS OsteopathicMedicine_InStateRequiredFees,
+          $1:OSPROF5    :: INTEGER AS OsteopathicMedicine_OutOfStateTuition,
+          $1:OSPFEE5    :: INTEGER AS OsteopathicMedicine_OutOfStateRequiredFees,
+          $1:ISPROF6    :: INTEGER AS Pharmacy_InStateTuition,
+          $1:ISPFEE6    :: INTEGER AS Pharmacy_InStateRequiredFees,
+          $1:OSPROF6    :: INTEGER AS Pharmacy_OutOfStateTuition,
+          $1:OSPFEE6    :: INTEGER AS Pharmacy_OutOfStateRequiredFees,
+          $1:ISPROF7    :: INTEGER AS Podiatry_InStateTuition,
+          $1:ISPFEE7    :: INTEGER AS Podiatry_InStateRequiredFees,
+          $1:OSPROF7    :: INTEGER AS Podiatry_OutOfStateTuition,
+          $1:OSPFEE7    :: INTEGER AS Podiatry_OutOfStateRequiredFees,
+          $1:ISPROF8    :: INTEGER AS VeterinaryMedicine_InStateTuition,
+          $1:ISPFEE8    :: INTEGER AS VeterinaryMedicine_InStateRequiredFees,
+          $1:OSPROF8    :: INTEGER AS VeterinaryMedicine_OutOfStateTuition,
+          $1:OSPFEE8    :: INTEGER AS VeterinaryMedicine_OutOfStateRequiredFees,
+          $1:ISPROF9    :: INTEGER AS Law_InStateTuition,
+          $1:ISPFEE9    :: INTEGER AS Law_InStateRequiredFees,
+          $1:OSPROF9    :: INTEGER AS Law_OutOfStateTuition,
+          $1:OSPFEE9    :: INTEGER AS Law_OutOfStateRequiredFees,
+          $1:CHG1AT0    :: INTEGER AS PublishedInDistrictTuitionYear0,
+          $1:CHG1AF0    :: INTEGER AS PublishedInDistrictFeesYear0,
+          $1:CHG1AY0    :: INTEGER AS PublishedInDistrictTuitionFeesYear0,
+          $1:CHG1AT1    :: INTEGER AS PublishedInDistrictTuitionYear1,
+          $1:CHG1AF1    :: INTEGER AS PublishedInDistrictFeesYear1,
+          $1:CHG1AY1    :: INTEGER AS PublishedInDistrictTuitionFeesYear1,
+          $1:CHG1AT2    :: INTEGER AS PublishedInDistrictTuitionYear2,
+          $1:CHG1AF2    :: INTEGER AS PublishedInDistrictFeesYear2,
+          $1:CHG1AY2    :: INTEGER AS PublishedInDistrictTuitionFeesYear2,
+          $1:CHG1AT3    :: INTEGER AS PublishedInDistrictTuitionYear3,
+          $1:CHG1AF3    :: INTEGER AS PublishedInDistrictFeesYear3,
+          $1:CHG1AY3    :: INTEGER AS PublishedInDistrictTuitionFeesYear3,
+          $1:CHG1TGTD   :: INTEGER AS PublishedInDistrictTuitionYear3GuaranteedPercentIncrease,
+          $1:CHG1FGTD   :: INTEGER AS PublishedInDistrictFeesYear3GuaranteedPercentIncrease,
+          $1:CHG2AT0    :: INTEGER AS PublishedInStateTuitionYear0,
+          $1:CHG2AF0    :: INTEGER AS PublishedInStateFeesYear0,
+          $1:CHG2AY0    :: INTEGER AS PublishedInStateTuitionFeesYear0,
+          $1:CHG2AT1    :: INTEGER AS PublishedInStateTuitionYear1,
+          $1:CHG2AF1    :: INTEGER AS PublishedInStateFeesYear1,
+          $1:CHG2AY1    :: INTEGER AS PublishedInStateTuitionFeesYear1,
+          $1:CHG2AT2    :: INTEGER AS PublishedInStateTuitionYear2,
+          $1:CHG2AF2    :: INTEGER AS PublishedInStateFeesYear2,
+          $1:CHG2AY2    :: INTEGER AS PublishedInStateTuitionFeesYear2,
+          $1:CHG2AT3    :: INTEGER AS PublishedInStateTuitionYear3,
+          $1:CHG2AF3    :: INTEGER AS PublishedInStateFeesYear3,
+          $1:CHG2AY3    :: INTEGER AS PublishedInStateTuitionFeesYear3,
+          $1:CHG2TGTD   :: INTEGER AS PublishedInStateTuitionGuaranteedPercentIncrease,
+          $1:CHG2FGTD   :: INTEGER AS PublishedInStateFeesGuaranteedPercentIncrease,
+          $1:CHG3AT0    :: INTEGER AS PublishedOutOfStateTuitionYear0,
+          $1:CHG3AF0    :: INTEGER AS PublishedOutOfStateFeesYear0,
+          $1:CHG3AY0    :: INTEGER AS PublishedOutOfStateTuitionFeesYear0,
+          $1:CHG3AT1    :: INTEGER AS PublishedOutOfStateTuitionYear1,
+          $1:CHG3AF1    :: INTEGER AS PublishedOutOfStateFeesYear1,
+          $1:CHG3AY1    :: INTEGER AS PublishedOutOfStateTuitionFeesYear1,
+          $1:CHG3AT2    :: INTEGER AS PublishedOutOfStateTuitionYear2,
+          $1:CHG3AF2    :: INTEGER AS PublishedOutOfStateFeesYear2,
+          $1:CHG3AY2    :: INTEGER AS PublishedOutOfStateTuitionFeesYear2,
+          $1:CHG3AT3    :: INTEGER AS PublishedOutOfStateTuitionYear3,
+          $1:CHG3AF3    :: INTEGER AS PublishedOutOfStateFeesYear3,
+          $1:CHG3AY3    :: INTEGER AS PublishedOutOfStateTuitionFeesYear3,
+          $1:CHG3TGTD   :: INTEGER AS PublishedOutOfStateTuitionGuaranteedPercentIncrease,
+          $1:CHG3FGTD   :: INTEGER AS PublishedOutOfStateFeesGuaranteedPercentIncrease,
+          $1:CHG4AY0    :: INTEGER AS BooksSuppliesYear0,
+          $1:CHG4AY1    :: INTEGER AS BooksSuppliesYear1,
+          $1:CHG4AY2    :: INTEGER AS BooksSuppliesYear2,
+          $1:CHG4AY3    :: INTEGER AS BooksSuppliesYear3,
+          $1:CHG5AY0    :: INTEGER AS OnCampusRoomBoardYear0,
+          $1:CHG5AY1    :: INTEGER AS OnCampusRoomBoardYear1,
+          $1:CHG5AY2    :: INTEGER AS OnCampusRoomBoardYear2,
+          $1:CHG5AY3    :: INTEGER AS OnCampusRoomBoardYear3,
+          $1:CHG6AY0    :: INTEGER AS OnCampusOtherExpensesYear0,
+          $1:CHG6AY1    :: INTEGER AS OnCampusOtherExpensesYear1,
+          $1:CHG6AY2    :: INTEGER AS OnCampusOtherExpensesYear2,
+          $1:CHG6AY3    :: INTEGER AS OnCampusOtherExpensesYear3,
+          $1:CHG7AY0    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear0,
+          $1:CHG7AY1    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear1,
+          $1:CHG7AY2    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear2,
+          $1:CHG7AY3    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear3,
+          $1:CHG8AY0    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear0,
+          $1:CHG8AY1    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear1,
+          $1:CHG8AY2    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear2,
+          $1:CHG8AY3    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear3,
+          $1:CHG9AY0    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear0,
+          $1:CHG9AY1    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear1,
+          $1:CHG9AY2    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear2,
+          $1:CHG9AY3    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear3,
+          LEFT(MetaData$FileName, 4) AS AcademicYear,
+          metadata$filename IngestedFileName,
+          metadata$file_row_number RowNumber
+        FROM
+          @IPEDS_IC
+        WHERE LEFT(MetaData$FileName,4) = 2017;
+</pre></div>
+</div>
+</div>
+<div class="section" id="operational-data-od-table-for-institutional-charge">
+<h2>Operational data (OD) table for Institutional charge<a class="headerlink" href="#operational-data-od-table-for-institutional-charge" title="Permalink to this headline">¶</a></h2>
+<p>OD table od_InstitutionalCharge is added  to load institutional charge data from the staged file.
+OD table contains all the columns from the staged file &#64;IPEDS_IC.
+The Snowflake script for creating the OD table is shown below.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">od_InstitutionalCharge</span> <span class="p">(</span>
+                  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InDistrictAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InDistrictRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InDistrictPerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InStateAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InStateRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InStatePerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OutOfStateAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OutOfStateRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OutOfStatePerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InDistrictAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InDistrictRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InDistrictPerCreditHourChargePartTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InStateAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InStateRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">InStatePerCreditHourChargePartTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OutOfStateAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OutOfStateRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OutOfStatePerCreditHourChargePartTimeGraduate</span> <span class="n">INTEGER</span><span class="p">,</span>
+
+                  <span class="n">Chiropractic_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Chiropractic_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Chiropractic_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Chiropractic_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Dentistry_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Dentistry_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Dentistry_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Dentistry_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Medicine_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Medicine_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Medicine_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Medicine_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Optometry_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Optometry_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Optometry_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Optometry_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OsteopathicMedicine_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OsteopathicMedicine_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OsteopathicMedicine_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OsteopathicMedicine_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Pharmacy_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Pharmacy_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Pharmacy_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Pharmacy_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Podiatry_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Podiatry_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Podiatry_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Podiatry_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">VeterinaryMedicine_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">VeterinaryMedicine_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">VeterinaryMedicine_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">VeterinaryMedicine_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Law_InStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Law_InStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Law_OutOfStateTuition</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">Law_OutOfStateRequiredFees</span> <span class="n">INTEGER</span><span class="p">,</span>
+
+                  <span class="n">PublishedInDistrictTuitionYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictFeesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionFeesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictFeesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionFeesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictFeesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionFeesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictFeesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionFeesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictTuitionYear3GuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInDistrictFeesYear3GuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateFeesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionFeesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateFeesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionFeesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateFeesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionFeesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateFeesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionFeesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateTuitionGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedInStateFeesGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateFeesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionFeesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateFeesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionFeesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateFeesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionFeesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateFeesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionFeesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateTuitionGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">PublishedOutOfStateFeesGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+
+                  <span class="n">BooksSuppliesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">BooksSuppliesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">BooksSuppliesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">BooksSuppliesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusRoomBoardYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusRoomBoardYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusRoomBoardYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusRoomBoardYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusOtherExpensesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusOtherExpensesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusOtherExpensesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OnCampusOtherExpensesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyRoomBoardYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyRoomBoardYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyRoomBoardYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyRoomBoardYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyOtherExpensesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyOtherExpensesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyOtherExpensesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusNotWithFamilyOtherExpensesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusWithFamilyOtherExpensesYear0</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusWithFamilyOtherExpensesYear1</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusWithFamilyOtherExpensesYear2</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">OffCampusWithFamilyOtherExpensesYear3</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">AcademicYear</span> <span class="n">INTEGER</span><span class="p">,</span>
+                  <span class="n">IngestedFileName</span> <span class="n">STRING</span><span class="p">,</span>
+                  <span class="n">RowNumber</span> <span class="n">INTEGER</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The attributes of the staging table can be categorized into the 3 groups shown below along with a core group.</p>
+</div>
+<div class="section" id="charge-by-academic-branch">
+<h2>Charge by academic branch<a class="headerlink" href="#charge-by-academic-branch" title="Permalink to this headline">¶</a></h2>
+<p>These cover different professional colleges
+<strong>Chiropractic</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Chiropractic_InStateTuition</p></li>
+<li><p>Chiropractic_InStateRequiredFees</p></li>
+<li><p>Chiropractic_OutOfStateTuition</p></li>
+<li><p>Chiropractic_OutOfStateRequiredFees</p></li>
+</ul>
+</div></blockquote>
+<p><strong>Medicine</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Medicine_InStateTuition</p></li>
+<li><p>Medicine_InStateRequiredFees</p></li>
+<li><p>Medicine_OutOfStateTuition</p></li>
+<li><p>Medicine_OutOfStateRequiredFees</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="charges-by-residency-type">
+<h2>Charges by Residency Type<a class="headerlink" href="#charges-by-residency-type" title="Permalink to this headline">¶</a></h2>
+<p><strong>InDistrictTuition</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>PublishedInDistrictTuitionYear0</p></li>
+<li><p>PublishedInDistrictTuitionYear1</p></li>
+<li><p>PublishedInDistrictTuitionYear2</p></li>
+<li><p>PublishedInDistrictTuitionFeesYear3</p></li>
+</ul>
+</div></blockquote>
+<p><strong>InDistrictFees</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>PublishedInDistrictFeesYear0</p></li>
+<li><p>PublishedInDistrictFeesYear1</p></li>
+<li><p>PublishedInDistrictFeesYear2</p></li>
+<li><p>PublishedInDistrictFeesYear3</p></li>
+</ul>
+</div></blockquote>
+<p><strong>InDistrictTuitionFees</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>PublishedInDistrictTuitionFeesYear0</p></li>
+<li><p>PublishedInDistrictTuitionFeesYear1</p></li>
+<li><p>PublishedInDistrictTuitionFeesYear2</p></li>
+<li><p>PublishedInDistrictTuitionFeesYear3</p></li>
+</ul>
+</div></blockquote>
+<p><strong>InStateTuition</strong></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>PublishedInStateTuitionYear0</p></li>
+<li><p>PublishedInStateTuitionYear1</p></li>
+<li><p>PublishedInStateTuitionYear2</p></li>
+<li><p>PublishedInStateTuitionYear3</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="id1">
+<h2>Institutional Charge by Category<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>**      BooksSupplies   **</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>BooksSuppliesYear0</p></li>
+<li><p>BooksSuppliesYear1</p></li>
+<li><p>BooksSuppliesYear2</p></li>
+<li><p>BooksSuppliesYear3</p></li>
+</ul>
+</div></blockquote>
+<p>**      OnCampusRoomBoard       **</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>OnCampusRoomBoardYear0</p></li>
+<li><p>OnCampusRoomBoardYear1</p></li>
+<li><p>OnCampusRoomBoardYear2</p></li>
+<li><p>OnCampusRoomBoardYear3</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="stored-procedure-for-od-table-load">
+<h2>Stored procedure for OD table load<a class="headerlink" href="#stored-procedure-for-od-table-load" title="Permalink to this headline">¶</a></h2>
+<p>Stored procedure , called <strong>pr_od_InstitutionalCharge_Load</strong> is added
+to load the OD table with institutional
+charge records from the staged file.</p>
+<p>This stored procedure takes the YEAR parameter and retrieves the records
+from the staged file for that year.</p>
+<p>Here is the script for creating the stored procedure.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_od_InstitutionalCharge_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+EXECUTE AS OWNER
+AS
+$$
+var sql_command = `
+    INSERT INTO od_InstitutionalCharge (
+        InstitutionIdentifier   ,
+        InDistrictAverageTuitionFullTimeUndergraduates  ,
+        InDistrictRequiredFeesFullTimeUndergraduates    ,
+        InDistrictPerCreditHourChargeForPartTimeUndergraduates  ,
+        InStateAverageTuitionFullTimeUndergraduates     ,
+        InStateRequiredFeesFullTimeUndergraduates       ,
+        InStatePerCreditHourChargeForPartTimeUndergraduates     ,
+        OutOfStateAverageTuitionFullTimeUndergraduates  ,
+        OutOfStateRequiredFeesFullTimeUndergraduates    ,
+        OutOfStatePerCreditHourChargeForPartTimeUndergraduates  ,
+        InDistrictAverageTuitionFullTimeGraduates       ,
+        InDistrictRequiredFeesFullTimeGraduates ,
+        InDistrictPerCreditHourChargePartTimeGraduates  ,
+        InStateAverageTuitionFullTimeGraduates  ,
+        InStateRequiredFeesFullTimeGraduates    ,
+        InStatePerCreditHourChargePartTimeGraduates     ,
+        OutOfStateAverageTuitionFullTimeGraduates       ,
+        OutOfStateRequiredFeesFullTimeGraduates ,
+        OutOfStatePerCreditHourChargePartTimeGraduate   ,
+        Chiropractic_InStateTuition     ,
+        Chiropractic_InStateRequiredFees        ,
+        Chiropractic_OutOfStateTuition  ,
+        Chiropractic_OutOfStateRequiredFees     ,
+        Dentistry_InStateTuition        ,
+        Dentistry_InStateRequiredFees   ,
+        Dentistry_OutOfStateTuition     ,
+        Dentistry_OutOfStateRequiredFees        ,
+        Medicine_InStateTuition ,
+        Medicine_InStateRequiredFees    ,
+        Medicine_OutOfStateTuition      ,
+        Medicine_OutOfStateRequiredFees ,
+        Optometry_InStateTuition        ,
+        Optometry_InStateRequiredFees   ,
+        Optometry_OutOfStateTuition     ,
+        Optometry_OutOfStateRequiredFees        ,
+        OsteopathicMedicine_InStateTuition      ,
+        OsteopathicMedicine_InStateRequiredFees ,
+        OsteopathicMedicine_OutOfStateTuition   ,
+        OsteopathicMedicine_OutOfStateRequiredFees      ,
+        Pharmacy_InStateTuition ,
+        Pharmacy_InStateRequiredFees    ,
+        Pharmacy_OutOfStateTuition      ,
+        Pharmacy_OutOfStateRequiredFees ,
+        Podiatry_InStateTuition ,
+        Podiatry_InStateRequiredFees    ,
+        Podiatry_OutOfStateTuition      ,
+        Podiatry_OutOfStateRequiredFees ,
+        VeterinaryMedicine_InStateTuition       ,
+        VeterinaryMedicine_InStateRequiredFees  ,
+        VeterinaryMedicine_OutOfStateTuition    ,
+        VeterinaryMedicine_OutOfStateRequiredFees       ,
+        Law_InStateTuition      ,
+        Law_InStateRequiredFees ,
+        Law_OutOfStateTuition   ,
+        Law_OutOfStateRequiredFees      ,
+        PublishedInDistrictTuitionYear0 ,
+        PublishedInDistrictFeesYear0    ,
+        PublishedInDistrictTuitionFeesYear0     ,
+        PublishedInDistrictTuitionYear1 ,
+        PublishedInDistrictFeesYear1    ,
+        PublishedInDistrictTuitionFeesYear1     ,
+        PublishedInDistrictTuitionYear2 ,
+        PublishedInDistrictFeesYear2    ,
+        PublishedInDistrictTuitionFeesYear2     ,
+        PublishedInDistrictTuitionYear3 ,
+        PublishedInDistrictFeesYear3    ,
+        PublishedInDistrictTuitionFeesYear3     ,
+        PublishedInDistrictTuitionYear3GuaranteedPercentIncrease        ,
+        PublishedInDistrictFeesYear3GuaranteedPercentIncrease   ,
+        PublishedInStateTuitionYear0    ,
+        PublishedInStateFeesYear0       ,
+        PublishedInStateTuitionFeesYear0        ,
+        PublishedInStateTuitionYear1    ,
+        PublishedInStateFeesYear1       ,
+        PublishedInStateTuitionFeesYear1        ,
+        PublishedInStateTuitionYear2    ,
+        PublishedInStateFeesYear2       ,
+        PublishedInStateTuitionFeesYear2        ,
+        PublishedInStateTuitionYear3    ,
+        PublishedInStateFeesYear3       ,
+        PublishedInStateTuitionFeesYear3        ,
+        PublishedInStateTuitionGuaranteedPercentIncrease        ,
+        PublishedInStateFeesGuaranteedPercentIncrease   ,
+        PublishedOutOfStateTuitionYear0 ,
+        PublishedOutOfStateFeesYear0    ,
+        PublishedOutOfStateTuitionFeesYear0     ,
+        PublishedOutOfStateTuitionYear1 ,
+        PublishedOutOfStateFeesYear1    ,
+        PublishedOutOfStateTuitionFeesYear1     ,
+        PublishedOutOfStateTuitionYear2 ,
+        PublishedOutOfStateFeesYear2    ,
+        PublishedOutOfStateTuitionFeesYear2     ,
+        PublishedOutOfStateTuitionYear3 ,
+        PublishedOutOfStateFeesYear3    ,
+        PublishedOutOfStateTuitionFeesYear3     ,
+        PublishedOutOfStateTuitionGuaranteedPercentIncrease     ,
+        PublishedOutOfStateFeesGuaranteedPercentIncrease        ,
+        BooksSuppliesYear0      ,
+        BooksSuppliesYear1      ,
+        BooksSuppliesYear2      ,
+        BooksSuppliesYear3      ,
+        OnCampusRoomBoardYear0  ,
+        OnCampusRoomBoardYear1  ,
+        OnCampusRoomBoardYear2  ,
+        OnCampusRoomBoardYear3  ,
+        OnCampusOtherExpensesYear0      ,
+        OnCampusOtherExpensesYear1      ,
+        OnCampusOtherExpensesYear2      ,
+        OnCampusOtherExpensesYear3      ,
+        OffCampusNotWithFamilyRoomBoardYear0    ,
+        OffCampusNotWithFamilyRoomBoardYear1    ,
+        OffCampusNotWithFamilyRoomBoardYear2    ,
+        OffCampusNotWithFamilyRoomBoardYear3    ,
+        OffCampusNotWithFamilyOtherExpensesYear0        ,
+        OffCampusNotWithFamilyOtherExpensesYear1        ,
+        OffCampusNotWithFamilyOtherExpensesYear2        ,
+        OffCampusNotWithFamilyOtherExpensesYear3        ,
+        OffCampusWithFamilyOtherExpensesYear0   ,
+        OffCampusWithFamilyOtherExpensesYear1   ,
+        OffCampusWithFamilyOtherExpensesYear2   ,
+        OffCampusWithFamilyOtherExpensesYear3   ,
+        AcademicYear    ,
+        IngestedFileName        ,
+        RowNumber
+)
+SELECT
+  $1:UNITID     :: VARCHAR AS InstitutionIdentifier,
+  $1:TUITION1   :: INTEGER AS InDistrictAverageTuitionFullTimeUndergraduates,
+  $1:FEE1       :: INTEGER AS InDistrictRequiredFeesFullTimeUndergraduates,
+  $1:HRCHG1     :: INTEGER AS InDistrictPerCreditHourChargeForPartTimeUndergraduates,
+  $1:TUITION2   :: INTEGER AS InStateAverageTuitionFullTimeUndergraduates,
+  $1:FEE2       :: INTEGER AS InStateRequiredFeesFullTimeUndergraduates,
+  $1:HRCHG2     :: INTEGER AS InStatePerCreditHourChargeForPartTimeUndergraduates,
+  $1:TUITION3   :: INTEGER AS OutOfStateAverageTuitionFullTimeUndergraduates,
+  $1:FEE3       :: INTEGER AS OutOfStateRequiredFeesFullTimeUndergraduates,
+  $1:HRCHG3     :: INTEGER AS OutOfStatePerCreditHourChargeForPartTimeUndergraduates,
+  $1:TUITION5   :: INTEGER AS InDistrictAverageTuitionFullTimeGraduates,
+  $1:FEE5       :: INTEGER AS InDistrictRequiredFeesFullTimeGraduates,
+  $1:HRCHG5     :: INTEGER AS InDistrictPerCreditHourChargePartTimeGraduates,
+  $1:TUITION6   :: INTEGER AS InStateAverageTuitionFullTimeGraduates,
+  $1:FEE6       :: INTEGER AS InStateRequiredFeesFullTimeGraduates,
+  $1:HRCHG6     :: INTEGER AS InStatePerCreditHourChargePartTimeGraduates,
+  $1:TUITION7   :: INTEGER AS OutOfStateAverageTuitionFullTimeGraduates,
+  $1:FEE7       :: INTEGER AS OutOfStateRequiredFeesFullTimeGraduates,
+  $1:HRCHG7     :: INTEGER AS OutOfStatePerCreditHourChargePartTimeGraduate,
+  $1:ISPROF1    :: INTEGER AS Chiropractic_InStateTuition,
+  $1:ISPFEE1    :: INTEGER AS Chiropractic_InStateRequiredFees,
+  $1:OSPROF1    :: INTEGER AS Chiropractic_OutOfStateTuition,
+  $1:OSPFEE1    :: INTEGER AS Chiropractic_OutOfStateRequiredFees,
+  $1:ISPROF2    :: INTEGER AS Dentistry_InStateTuition,
+  $1:ISPFEE2    :: INTEGER AS Dentistry_InStateRequiredFees,
+  $1:OSPROF2    :: INTEGER AS Dentistry_OutOfStateTuition,
+  $1:OSPFEE2    :: INTEGER AS Dentistry_OutOfStateRequiredFees,
+  $1:ISPROF3    :: INTEGER AS Medicine_InStateTuition,
+  $1:ISPFEE3    :: INTEGER AS Medicine_InStateRequiredFees,
+  $1:OSPROF3    :: INTEGER AS Medicine_OutOfStateTuition,
+  $1:OSPFEE3    :: INTEGER AS Medicine_OutOfStateRequiredFees,
+  $1:ISPROF4    :: INTEGER AS Optometry_InStateTuition,
+  $1:ISPFEE4    :: INTEGER AS Optometry_InStateRequiredFees,
+  $1:OSPROF4    :: INTEGER AS Optometry_OutOfStateTuition,
+  $1:OSPFEE4    :: INTEGER AS Optometry_OutOfStateRequiredFees,
+  $1:ISPROF5    :: INTEGER AS OsteopathicMedicine_InStateTuition,
+  $1:ISPFEE5    :: INTEGER AS OsteopathicMedicine_InStateRequiredFees,
+  $1:OSPROF5    :: INTEGER AS OsteopathicMedicine_OutOfStateTuition,
+  $1:OSPFEE5    :: INTEGER AS OsteopathicMedicine_OutOfStateRequiredFees,
+  $1:ISPROF6    :: INTEGER AS Pharmacy_InStateTuition,
+  $1:ISPFEE6    :: INTEGER AS Pharmacy_InStateRequiredFees,
+  $1:OSPROF6    :: INTEGER AS Pharmacy_OutOfStateTuition,
+  $1:OSPFEE6    :: INTEGER AS Pharmacy_OutOfStateRequiredFees,
+  $1:ISPROF7    :: INTEGER AS Podiatry_InStateTuition,
+  $1:ISPFEE7    :: INTEGER AS Podiatry_InStateRequiredFees,
+  $1:OSPROF7    :: INTEGER AS Podiatry_OutOfStateTuition,
+  $1:OSPFEE7    :: INTEGER AS Podiatry_OutOfStateRequiredFees,
+  $1:ISPROF8    :: INTEGER AS VeterinaryMedicine_InStateTuition,
+  $1:ISPFEE8    :: INTEGER AS VeterinaryMedicine_InStateRequiredFees,
+  $1:OSPROF8    :: INTEGER AS VeterinaryMedicine_OutOfStateTuition,
+  $1:OSPFEE8    :: INTEGER AS VeterinaryMedicine_OutOfStateRequiredFees,
+  $1:ISPROF9    :: INTEGER AS Law_InStateTuition,
+  $1:ISPFEE9    :: INTEGER AS Law_InStateRequiredFees,
+  $1:OSPROF9    :: INTEGER AS Law_OutOfStateTuition,
+  $1:OSPFEE9    :: INTEGER AS Law_OutOfStateRequiredFees,
+  $1:CHG1AT0    :: INTEGER AS PublishedInDistrictTuitionYear0,
+  $1:CHG1AF0    :: INTEGER AS PublishedInDistrictFeesYear0,
+  $1:CHG1AY0    :: INTEGER AS PublishedInDistrictTuitionFeesYear0,
+  $1:CHG1AT1    :: INTEGER AS PublishedInDistrictTuitionYear1,
+  $1:CHG1AF1    :: INTEGER AS PublishedInDistrictFeesYear1,
+  $1:CHG1AY1    :: INTEGER AS PublishedInDistrictTuitionFeesYear1,
+  $1:CHG1AT2    :: INTEGER AS PublishedInDistrictTuitionYear2,
+  $1:CHG1AF2    :: INTEGER AS PublishedInDistrictFeesYear2,
+  $1:CHG1AY2    :: INTEGER AS PublishedInDistrictTuitionFeesYear2,
+  $1:CHG1AT3    :: INTEGER AS PublishedInDistrictTuitionYear3,
+  $1:CHG1AF3    :: INTEGER AS PublishedInDistrictFeesYear3,
+  $1:CHG1AY3    :: INTEGER AS PublishedInDistrictTuitionFeesYear3,
+  $1:CHG1TGTD   :: INTEGER AS PublishedInDistrictTuitionYear3GuaranteedPercentIncrease,
+  $1:CHG1FGTD   :: INTEGER AS PublishedInDistrictFeesYear3GuaranteedPercentIncrease,
+  $1:CHG2AT0    :: INTEGER AS PublishedInStateTuitionYear0,
+  $1:CHG2AF0    :: INTEGER AS PublishedInStateFeesYear0,
+  $1:CHG2AY0    :: INTEGER AS PublishedInStateTuitionFeesYear0,
+  $1:CHG2AT1    :: INTEGER AS PublishedInStateTuitionYear1,
+  $1:CHG2AF1    :: INTEGER AS PublishedInStateFeesYear1,
+  $1:CHG2AY1    :: INTEGER AS PublishedInStateTuitionFeesYear1,
+  $1:CHG2AT2    :: INTEGER AS PublishedInStateTuitionYear2,
+  $1:CHG2AF2    :: INTEGER AS PublishedInStateFeesYear2,
+  $1:CHG2AY2    :: INTEGER AS PublishedInStateTuitionFeesYear2,
+  $1:CHG2AT3    :: INTEGER AS PublishedInStateTuitionYear3,
+  $1:CHG2AF3    :: INTEGER AS PublishedInStateFeesYear3,
+  $1:CHG2AY3    :: INTEGER AS PublishedInStateTuitionFeesYear3,
+  $1:CHG2TGTD   :: INTEGER AS PublishedInStateTuitionGuaranteedPercentIncrease,
+  $1:CHG2FGTD   :: INTEGER AS PublishedInStateFeesGuaranteedPercentIncrease,
+  $1:CHG3AT0    :: INTEGER AS PublishedOutOfStateTuitionYear0,
+  $1:CHG3AF0    :: INTEGER AS PublishedOutOfStateFeesYear0,
+  $1:CHG3AY0    :: INTEGER AS PublishedOutOfStateTuitionFeesYear0,
+  $1:CHG3AT1    :: INTEGER AS PublishedOutOfStateTuitionYear1,
+  $1:CHG3AF1    :: INTEGER AS PublishedOutOfStateFeesYear1,
+  $1:CHG3AY1    :: INTEGER AS PublishedOutOfStateTuitionFeesYear1,
+  $1:CHG3AT2    :: INTEGER AS PublishedOutOfStateTuitionYear2,
+  $1:CHG3AF2    :: INTEGER AS PublishedOutOfStateFeesYear2,
+  $1:CHG3AY2    :: INTEGER AS PublishedOutOfStateTuitionFeesYear2,
+  $1:CHG3AT3    :: INTEGER AS PublishedOutOfStateTuitionYear3,
+  $1:CHG3AF3    :: INTEGER AS PublishedOutOfStateFeesYear3,
+  $1:CHG3AY3    :: INTEGER AS PublishedOutOfStateTuitionFeesYear3,
+  $1:CHG3TGTD   :: INTEGER AS PublishedOutOfStateTuitionGuaranteedPercentIncrease,
+  $1:CHG3FGTD   :: INTEGER AS PublishedOutOfStateFeesGuaranteedPercentIncrease,
+  $1:CHG4AY0    :: INTEGER AS BooksSuppliesYear0,
+  $1:CHG4AY1    :: INTEGER AS BooksSuppliesYear1,
+  $1:CHG4AY2    :: INTEGER AS BooksSuppliesYear2,
+  $1:CHG4AY3    :: INTEGER AS BooksSuppliesYear3,
+  $1:CHG5AY0    :: INTEGER AS OnCampusRoomBoardYear0,
+  $1:CHG5AY1    :: INTEGER AS OnCampusRoomBoardYear1,
+  $1:CHG5AY2    :: INTEGER AS OnCampusRoomBoardYear2,
+  $1:CHG5AY3    :: INTEGER AS OnCampusRoomBoardYear3,
+  $1:CHG6AY0    :: INTEGER AS OnCampusOtherExpensesYear0,
+  $1:CHG6AY1    :: INTEGER AS OnCampusOtherExpensesYear1,
+  $1:CHG6AY2    :: INTEGER AS OnCampusOtherExpensesYear2,
+  $1:CHG6AY3    :: INTEGER AS OnCampusOtherExpensesYear3,
+  $1:CHG7AY0    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear0,
+  $1:CHG7AY1    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear1,
+  $1:CHG7AY2    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear2,
+  $1:CHG7AY3    :: INTEGER AS OffCampusNotWithFamilyRoomBoardYear3,
+  $1:CHG8AY0    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear0,
+  $1:CHG8AY1    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear1,
+  $1:CHG8AY2    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear2,
+  $1:CHG8AY3    :: INTEGER AS OffCampusNotWithFamilyOtherExpensesYear3,
+  $1:CHG9AY0    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear0,
+  $1:CHG9AY1    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear1,
+  $1:CHG9AY2    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear2,
+  $1:CHG9AY3    :: INTEGER AS OffCampusWithFamilyOtherExpensesYear3,
+  LEFT(MetaData$FileName, 4) AS AcademicYear,
+  metadata$filename IngestedFileName,
+  metadata$file_row_number RowNumber
+        FROM
+          @IPEDS_IC
+        WHERE LEFT(MetaData$FileName,4) = ` + YEAR.toString()+`;`
+
+    try {
+        snowflake.execute (
+          {sqlText: sql_command}
+          );
+        }
+    catch (err) {
+        return &quot;Failed: &quot; + err;  // Return a success/error indicator.
+        }
+    return &quot;success.&quot;;  // Return a success/error indicator.
+
+$$
+;
+</pre></div>
+</div>
+<p>The procedure is called for processing various years as below.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRUNCATE</span> <span class="n">TABLE</span> <span class="n">od_InstitutionalCharge</span><span class="p">;</span>
+
+<span class="n">CALL</span> <span class="n">pr_od_InstitutionalCharge_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_od_InstitutionalCharge_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_od_InstitutionalCharge_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>We have added following the entities to the servicing layer. These entities will be populated in the transformation layer.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>InstitutionalCharge</p></li>
+<li><p>InstitutionalChargeByAcademicBranch</p></li>
+<li><p>InstitutionalChargeByResidencyType</p></li>
+<li><p>InstitutionalChargeByCategory</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="servicing-layer-data-structure">
+<h2>Servicing layer data structure<a class="headerlink" href="#servicing-layer-data-structure" title="Permalink to this headline">¶</a></h2>
+<p>The following script can be used to create these tables.</p>
+<div class="section" id="institutionalcharge-entity">
+<h3>InstitutionalCharge Entity<a class="headerlink" href="#institutionalcharge-entity" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">InstitutionalCharge</span> <span class="p">(</span>
+  <span class="n">AcademicInstitutionUniqueDWSID</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span> <span class="p">,</span>
+  <span class="n">AcademicYear</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InDistrictAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InDistrictRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InDistrictPerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InStateAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InStateRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InStatePerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OutOfStateAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OutOfStateRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OutOfStatePerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InDistrictAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InDistrictRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InDistrictPerCreditHourChargePartTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InStateAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InStateRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">InStatePerCreditHourChargePartTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OutOfStateAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OutOfStateRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">OutOfStatePerCreditHourChargePartTimeGraduate</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">PublishedInStateTuitionGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">PublishedInStateFeesGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">PublishedOutOfStateTuitionGuaranteedPercentIncrease</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">PublishedOutOfStateFeesGuaranteedPercentIncrease</span> <span class="n">INTEGER</span>
+  <span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="institutionalchargebyacademicbranch-entity">
+<h3>InstitutionalChargeByAcademicBranch Entity<a class="headerlink" href="#institutionalchargebyacademicbranch-entity" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">InstitutionalChargeByAcademicBranch</span> <span class="p">(</span>
+  <span class="n">AcademicInstitutionUniqueDWSID</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span> <span class="p">,</span>
+  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AcademicYear</span>  <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">BranchName</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="n">NOT</span> <span class="n">null</span><span class="p">,</span>
+  <span class="n">ChargeType</span> <span class="n">Varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="n">NOT</span> <span class="n">null</span><span class="p">,</span>
+  <span class="n">Amount</span>  <span class="n">INTEGER</span> <span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="institutionalchargebyresidencytype-entity">
+<h3>InstitutionalChargeByResidencyType Entity<a class="headerlink" href="#institutionalchargebyresidencytype-entity" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">InstitutionalChargeByResidencyType</span> <span class="p">(</span>
+  <span class="n">AcademicInstitutionUniqueDWSID</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AcademicYear</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">ResidencyType</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">PublishedYear</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">Amount</span>  <span class="n">INTEGER</span> <span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="institutionalchargebycategory-entity">
+<h3>InstitutionalChargeByCategory Entity<a class="headerlink" href="#institutionalchargebycategory-entity" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">InstitutionalChargeByCategory</span> <span class="p">(</span>
+  <span class="n">AcademicInstitutionUniqueDWSID</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+  <span class="n">AcademicYear</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">CategoryType</span> <span class="n">varchar</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">PublishedYear</span> <span class="n">INTEGER</span> <span class="n">NOT</span> <span class="n">NULL</span><span class="p">,</span>
+  <span class="n">Amount</span>  <span class="n">INTEGER</span> <span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="unpivot-data-to-load-into-the-servicing-layer">
+<h2>Unpivot data to load into the Servicing layer<a class="headerlink" href="#unpivot-data-to-load-into-the-servicing-layer" title="Permalink to this headline">¶</a></h2>
+<p>In our case, data is stored in the OD layer in a pivoted record structure. We will need to unpivot these attributes to load
+the servicing layer.</p>
+<p>We can unpivot data structure in a traditional SQL environment by creating a union on underlying attributes.</p>
+<p>Another flexible approach
+will be to store JSON object in the OD layer and simplify the load. As new categories (attributes) are added, it is easy to manage.
+Data structures are easy to digest for programmers. We will elaborate on this in the next section.</p>
+<p>The following views are created to transform columns to rows. These views will be used in load stored procedures.</p>
+<div class="section" id="v-od-institutionalchargebyacademicbranch">
+<h3>v_od_InstitutionalChargeByAcademicBranch<a class="headerlink" href="#v-od-institutionalchargebyacademicbranch" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">VIEW</span> <span class="n">v_od_InstitutionalChargeByAcademicBranch</span> <span class="n">AS</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span>
+                  <span class="s1">&#39;Chiropractic&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Chiropractic_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Chiropractic&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Chiropractic_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Chiropractic&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Chiropractic_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Chiropractic&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Chiropractic_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">Dentistry</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span>
+                  <span class="s1">&#39;Dentistry&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Dentistry_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Dentistry&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Dentistry_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Dentistry&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Dentistry_OutOfStateTuition</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Dentistry&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Dentistry_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">Medicine</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span>
+                  <span class="s1">&#39;Medicine&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Medicine_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Medicine&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Medicine_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Medicine&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Medicine_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Medicine&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Medicine_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">Optometry</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span>
+                  <span class="s1">&#39;Optometry&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Optometry_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Optometry&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Optometry_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Optometry&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Optometry_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Optometry&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Optometry_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">OsteopathicMedicine</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span>
+                  <span class="s1">&#39;OsteopathicMedicine&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">OsteopathicMedicine_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;OsteopathicMedicine&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">OsteopathicMedicine_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;OsteopathicMedicine&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">OsteopathicMedicine_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;OsteopathicMedicine&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">OsteopathicMedicine_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">Pharmacy</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span>
+                  <span class="s1">&#39;Pharmacy&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Pharmacy_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Pharmacy&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Pharmacy_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Pharmacy&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Pharmacy_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span>
+                  <span class="s1">&#39;Pharmacy&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+                  <span class="n">S</span><span class="o">.</span><span class="n">Pharmacy_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+                <span class="n">FROM</span>
+                  <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">Podiatry</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;Podiatry&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Podiatry_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+<span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;Podiatry&#39;</span><span class="p">,</span><span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Podiatry_InStateRequiredFees</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;Podiatry&#39;</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Podiatry_OutOfStateTuition</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;Podiatry&#39;</span><span class="p">,</span><span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Podiatry_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">VeterinaryMedicine</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;VeterinaryMedicine&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">VeterinaryMedicine_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+<span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;VeterinaryMedicine&#39;</span><span class="p">,</span><span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">VeterinaryMedicine_InStateRequiredFees</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;VeterinaryMedicine&#39;</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">VeterinaryMedicine_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;VeterinaryMedicine&#39;</span><span class="p">,</span><span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">VeterinaryMedicine_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">Law</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;Law&#39;</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Law_InStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+<span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;Law&#39;</span><span class="p">,</span><span class="s1">&#39;InStateRequiredFees&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Law_InStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;Law&#39;</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Law_OutOfStateTuition</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span> <span class="p">,</span><span class="s1">&#39;Law&#39;</span><span class="p">,</span><span class="s1">&#39;OutOfStateRequiredFees&#39;</span><span class="p">,</span>
+        <span class="n">S</span><span class="o">.</span><span class="n">Law_OutOfStateRequiredFees</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+        <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="p">;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="v-od-institutionalchargebyresidencytype">
+<h3>v_od_InstitutionalChargeByResidencyType<a class="headerlink" href="#v-od-institutionalchargebyresidencytype" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">VIEW</span> <span class="n">v_od_InstitutionalChargeByResidencyType</span> <span class="n">AS</span>
+<span class="o">--</span><span class="n">InDistrict</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictFeesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionFeesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictFeesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionFeesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictFeesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionFeesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictFeesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;DistrictTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInDistrictTuitionFeesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="o">--</span><span class="n">InState</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateFeesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionFeesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateFeesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionFeesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateFeesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionFeesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateFeesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;InStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedInStateTuitionFeesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="o">--</span><span class="n">OutOfState</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateFeesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionFeesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateFeesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionFeesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateFeesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionFeesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuition&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateFeesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OutOfStateTuitionFees&#39;</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">PublishedOutOfStateTuitionFeesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="p">;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="v-od-institutionalchargebycategory">
+<h3>v_od_InstitutionalChargeByCategory<a class="headerlink" href="#v-od-institutionalchargebycategory" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">VIEW</span> <span class="n">v_od_InstitutionalChargeByCategory</span> <span class="n">AS</span>
+<span class="o">--</span><span class="n">BooksSupplies</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;BooksSupplies&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">BooksSuppliesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;BooksSupplies&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">BooksSuppliesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;BooksSupplies&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">BooksSuppliesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;BooksSupplies&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">BooksSuppliesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="o">--</span><span class="n">OnCampusRoomBoard</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusRoomBoardYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusRoomBoardYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusRoomBoardYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusRoomBoardYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="o">--</span><span class="n">OnCampusOtherExpenses</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusOtherExpensesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusOtherExpensesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusOtherExpensesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OnCampusOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OnCampusOtherExpensesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="o">--</span><span class="n">OffCampusNotWithFamilyRoomBoard</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyRoomBoardYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyRoomBoardYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyRoomBoardYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyRoomBoard&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyRoomBoardYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="o">--</span><span class="n">OffCampusNotWithFamilyOtherExpenses</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyOtherExpensesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyOtherExpensesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyOtherExpensesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusNotWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusNotWithFamilyOtherExpensesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="o">--</span><span class="n">OffCampusWithFamilyOtherExpenses</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">0</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusWithFamilyOtherExpensesYear0</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">1</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusWithFamilyOtherExpensesYear1</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">2</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusWithFamilyOtherExpensesYear2</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span>
+          <span class="n">S</span><span class="o">.</span><span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">AcademicYear</span><span class="p">,</span><span class="s1">&#39;OffCampusWithFamilyOtherExpenses&#39;</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+          <span class="mi">3</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span><span class="n">S</span><span class="o">.</span><span class="n">OffCampusWithFamilyOtherExpensesYear3</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span>
+          <span class="n">od_InstitutionalCharge</span> <span class="n">S</span>
+<span class="p">;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-load-into-the-servicing-layer">
+<h2>Data load into the Servicing layer<a class="headerlink" href="#data-load-into-the-servicing-layer" title="Permalink to this headline">¶</a></h2>
+<p>We will be using the OD table od_InstitutionalCharge and the above 3 views to finally land data to our destination.
+There are four stored procedures, that use these data sources and land it. All these SP will take academic year
+parameter. For the given year, they will delete existing data from the destination tables and move data from the OD layer.</p>
+<p>The following SP code can be used to create these objects.</p>
+<div class="section" id="institutionalcharge-general-load">
+<h3>InstitutionalCharge (General) load<a class="headerlink" href="#institutionalcharge-general-load" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_InstitutionalCharge_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+EXECUTE AS OWNER
+AS
+$$
+var sql_DelCommand = `DELETE FROM InstitutionalCharge WHERE AcademicYear = `+ YEAR.toString() +`;`
+var sql_Command =
+`INSERT INTO
+   InstitutionalCharge
+   (AcademicInstitutionUniqueDWSID,
+        InstitutionIdentifier,
+        AcademicYear,
+        InDistrictAverageTuitionFullTimeUndergraduates,
+        InDistrictRequiredFeesFullTimeUndergraduates,
+        InDistrictPerCreditHourChargeForPartTimeUndergraduates,
+        InStateAverageTuitionFullTimeUndergraduates,
+        InStateRequiredFeesFullTimeUndergraduates,
+        InStatePerCreditHourChargeForPartTimeUndergraduates,
+        OutOfStateAverageTuitionFullTimeUndergraduates,
+        OutOfStateRequiredFeesFullTimeUndergraduates,
+        OutOfStatePerCreditHourChargeForPartTimeUndergraduates,
+        InDistrictAverageTuitionFullTimeGraduates,
+        InDistrictRequiredFeesFullTimeGraduates,
+        InDistrictPerCreditHourChargePartTimeGraduates,
+        InStateAverageTuitionFullTimeGraduates,
+        InStateRequiredFeesFullTimeGraduates,
+        InStatePerCreditHourChargePartTimeGraduates,
+        OutOfStateAverageTuitionFullTimeGraduates,
+        OutOfStateRequiredFeesFullTimeGraduates,
+        OutOfStatePerCreditHourChargePartTimeGraduate,
+        PublishedInStateTuitionGuaranteedPercentIncrease,
+        PublishedInStateFeesGuaranteedPercentIncrease,
+        PublishedOutOfStateTuitionGuaranteedPercentIncrease,
+        PublishedOutOfStateFeesGuaranteedPercentIncrease
+    )
+   SELECT
+        IFNULL(D.AcademicInstitutionUniqueDWSID, - 1),
+        S.InstitutionIdentifier,
+        S.AcademicYear,
+        S.InDistrictAverageTuitionFullTimeUndergraduates,
+        S.InDistrictRequiredFeesFullTimeUndergraduates,
+        S.InDistrictPerCreditHourChargeForPartTimeUndergraduates,
+        S.InStateAverageTuitionFullTimeUndergraduates,
+        S.InStateRequiredFeesFullTimeUndergraduates,
+        S.InStatePerCreditHourChargeForPartTimeUndergraduates,
+        S.OutOfStateAverageTuitionFullTimeUndergraduates,
+        S.OutOfStateRequiredFeesFullTimeUndergraduates,
+        S.OutOfStatePerCreditHourChargeForPartTimeUndergraduates,
+        S.InDistrictAverageTuitionFullTimeGraduates,
+        S.InDistrictRequiredFeesFullTimeGraduates,
+        S.InDistrictPerCreditHourChargePartTimeGraduates,
+        S.InStateAverageTuitionFullTimeGraduates,
+        S.InStateRequiredFeesFullTimeGraduates,
+        S.InStatePerCreditHourChargePartTimeGraduates,
+        S.OutOfStateAverageTuitionFullTimeGraduates,
+        S.OutOfStateRequiredFeesFullTimeGraduates,
+        S.OutOfStatePerCreditHourChargePartTimeGraduate,
+        S.PublishedInStateTuitionGuaranteedPercentIncrease,
+        S.PublishedInStateFeesGuaranteedPercentIncrease,
+        S.PublishedOutOfStateTuitionGuaranteedPercentIncrease,
+        S.PublishedOutOfStateFeesGuaranteedPercentIncrease
+   FROM
+      od_InstitutionalCharge S
+    LEFT OUTER JOIN AcademicInstitution D ON S.InstitutionIdentifier = D.InstitutionIdentifier
+    WHERE S.AcademicYear = ` + YEAR.toString() +`;`
+
+    var arrSqlCmd =[2];
+    arrSqlCmd[0] = sql_DelCommand
+    arrSqlCmd[1] = sql_Command
+    var sql_ExecCommand =&#39;&#39;;
+    for (var j=0;j&lt;arrSqlCmd.length; j++)
+    {
+        sql_ExecCommand = arrSqlCmd[j]
+        try
+        {
+            snowflake.execute(
+                {sqlText: sql_ExecCommand}
+            );
+      }
+        catch(err)
+        {
+            return &quot;Failed :&quot; + err;
+        }
+    }
+    return &quot;success&quot;
+$$;
+</pre></div>
+</div>
+</div>
+<div class="section" id="institutionalchargebyacademicbranch-load">
+<h3>InstitutionalChargeByAcademicBranch load<a class="headerlink" href="#institutionalchargebyacademicbranch-load" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_InstitutionalChargeByAcademicBranch_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+EXECUTE AS OWNER
+AS
+$$
+var sql_DelCommand = `DELETE FROM InstitutionalChargeByAcademicBranch WHERE AcademicYear = `+ YEAR.toString() +`;`
+var sql_Command =
+`INSERT INTO
+   InstitutionalChargeByAcademicBranch (
+          AcademicInstitutionUniqueDWSID,
+          InstitutionIdentifier,
+          AcademicYear,
+          BranchName,
+          ChargeType,
+          Amount
+    )
+   SELECT
+        IFNULL(D.AcademicInstitutionUniqueDWSID,-1),
+                S.InstitutionIdentifier,
+                S.AcademicYear,
+                S.BranchName,
+                S.ChargeType,
+                S.Amount
+   FROM
+      V_od_InstitutionalChargeByAcademicBranch S
+    LEFT OUTER JOIN AcademicInstitution D ON S.InstitutionIdentifier = D.InstitutionIdentifier
+    WHERE S.AcademicYear = ` + YEAR.toString() +`;`
+
+    var arrSqlCmd =[2];
+    arrSqlCmd[0] = sql_DelCommand
+    arrSqlCmd[1] = sql_Command
+    var sql_ExecCommand =&#39;&#39;;
+    for (var j=0;j&lt;arrSqlCmd.length; j++)
+    {
+        sql_ExecCommand = arrSqlCmd[j]
+        try
+        {
+            snowflake.execute(
+                {sqlText: sql_ExecCommand}
+            );
+      }
+        catch(err)
+        {
+            return &quot;Failed :&quot; + err;
+        }
+    }
+    return &quot;success&quot;
+$$;
+</pre></div>
+</div>
+</div>
+<div class="section" id="institutionalchargebyresidencytype-load">
+<h3>InstitutionalChargeByResidencyType load<a class="headerlink" href="#institutionalchargebyresidencytype-load" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_InstitutionalChargeByResidencyType_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+EXECUTE AS OWNER
+AS
+$$
+var sql_DelCommand = `DELETE FROM InstitutionalChargeByResidencyType WHERE AcademicYear = `+ YEAR.toString() +`;`
+var sql_Command =
+`INSERT INTO
+   InstitutionalChargeByResidencyType (
+          AcademicInstitutionUniqueDWSID,
+          InstitutionIdentifier,
+          AcademicYear,
+          ResidencyType,
+          PublishedYear,
+          Amount
+    )
+   SELECT
+        IFNULL(D.AcademicInstitutionUniqueDWSID,-1),
+                S.InstitutionIdentifier,
+                S.AcademicYear,
+                S.ResidencyType,
+                S.PublishedYear,
+                S.Amount
+   FROM
+      V_od_InstitutionalChargeByResidencyType S
+    LEFT OUTER JOIN AcademicInstitution D ON S.InstitutionIdentifier = D.InstitutionIdentifier
+    WHERE S.AcademicYear = ` + YEAR.toString() +`;`
+
+    var arrSqlCmd =[2];
+    arrSqlCmd[0] = sql_DelCommand
+    arrSqlCmd[1] = sql_Command
+    var sql_ExecCommand =&#39;&#39;;
+    for (var j=0;j&lt;arrSqlCmd.length; j++)
+    {
+        sql_ExecCommand = arrSqlCmd[j]
+        try
+        {
+            snowflake.execute(
+                {sqlText: sql_ExecCommand}
+            );
+      }
+        catch(err)
+        {
+            return &quot;Failed :&quot; + err;
+        }
+    }
+    return &quot;success&quot;
+$$;
+</pre></div>
+</div>
+</div>
+<div class="section" id="institutionalchargebycategory-load">
+<h3>InstitutionalChargeByCategory load<a class="headerlink" href="#institutionalchargebycategory-load" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_InstitutionalChargeByCategory_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+EXECUTE AS OWNER
+AS
+$$
+var sql_DelCommand = `DELETE FROM InstitutionalChargeByCategory WHERE AcademicYear = `+ YEAR.toString() +`;`
+var sql_Command =
+`INSERT INTO
+   InstitutionalChargeByCategory (
+          AcademicInstitutionUniqueDWSID,
+          InstitutionIdentifier,
+          AcademicYear,
+          CategoryType,
+          PublishedYear,
+          Amount
+    )
+   SELECT
+        IFNULL(D.AcademicInstitutionUniqueDWSID,-1),
+                S.InstitutionIdentifier,
+                S.AcademicYear,
+                S.CategoryType,
+                S.PublishedYear,
+                S.Amount
+   FROM
+      V_Od_InstitutionalChargeByCategory S
+    LEFT OUTER JOIN AcademicInstitution D ON S.InstitutionIdentifier = D.InstitutionIdentifier
+    WHERE S.AcademicYear = ` + YEAR.toString() +`;`
+
+    var arrSqlCmd =[2];
+    arrSqlCmd[0] = sql_DelCommand
+    arrSqlCmd[1] = sql_Command
+    var sql_ExecCommand =&#39;&#39;;
+    for (var j=0;j&lt;arrSqlCmd.length; j++)
+    {
+        sql_ExecCommand = arrSqlCmd[j]
+        try
+        {
+            snowflake.execute(
+                {sqlText: sql_ExecCommand}
+            );
+      }
+        catch(err)
+        {
+            return &quot;Failed :&quot; + err;
+        }
+    }
+    return &quot;success&quot;
+$$;
+</pre></div>
+</div>
+<p>Now data for all these 3 tables can be loaded with a call to these stored procedures</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalCharge_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalCharge_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalCharge_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByAcademicBranch_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByAcademicBranch_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByAcademicBranch_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+
+
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByResidencyType_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByResidencyType_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByResidencyType_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+
+
+
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByCategory_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByCategory_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+<span class="n">CALL</span> <span class="n">pr_InstitutionalChargeByCategory_Load</span><span class="p">(</span><span class="mi">2019</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Using ORC files in Snowflake is as easy as using CSV files. We can perform variety of transformations while moving data from
+the landing layer to the servicing layer.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<blockquote>
+<div><p>Code available to download  at <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/source/code/Chapter08">chapter08</a>.</p>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ORC Ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#institutional-charges">Institutional Charges</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#institutional-charge-general">Institutional charge (General)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutional-charge-by-academic-branch">Institutional charge by academic branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutional-charge-by-residency-type">Institutional charge by residency type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutional-charge-by-category">Institutional charge by category</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#staged-file-for-institution-charges">Staged File for Institution Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operational-data-od-table-for-institutional-charge">Operational data (OD) table for Institutional charge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#charge-by-academic-branch">Charge by academic branch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#charges-by-residency-type">Charges by Residency Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">Institutional Charge by Category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stored-procedure-for-od-table-load">Stored procedure for OD table load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#servicing-layer-data-structure">Servicing layer data structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalcharge-entity">InstitutionalCharge Entity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalchargebyacademicbranch-entity">InstitutionalChargeByAcademicBranch Entity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalchargebyresidencytype-entity">InstitutionalChargeByResidencyType Entity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalchargebycategory-entity">InstitutionalChargeByCategory Entity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#unpivot-data-to-load-into-the-servicing-layer">Unpivot data to load into the Servicing layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#v-od-institutionalchargebyacademicbranch">v_od_InstitutionalChargeByAcademicBranch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#v-od-institutionalchargebyresidencytype">v_od_InstitutionalChargeByResidencyType</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#v-od-institutionalchargebycategory">v_od_InstitutionalChargeByCategory</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-load-into-the-servicing-layer">Data load into the Servicing layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalcharge-general-load">InstitutionalCharge (General) load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalchargebyacademicbranch-load">InstitutionalChargeByAcademicBranch load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalchargebyresidencytype-load">InstitutionalChargeByResidencyType load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#institutionalchargebycategory-load">InstitutionalChargeByCategory load</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap07_Enrollment.html" title="previous chapter">Json Ingestion</a></li>
+      <li>Next: <a href="Chap08_InstitutionalChargesJson.html" title="next chapter">ORC ingestion - 2</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

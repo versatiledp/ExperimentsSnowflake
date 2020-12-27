@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data source &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Load Software" href="Chap02_DataLoadSoftware.html" />
+    <link rel="prev" title="Data Platform Overview" href="Chap00_intro.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="data-source">
+<h1>Data source<a class="headerlink" href="#data-source" title="Permalink to this headline">¶</a></h1>
+<p>Integrated Postsecondary Education Data System (IPEDS) - URL : <a class="reference external" href="https://nces.ed.gov/ipeds/">https://nces.ed.gov/ipeds/</a>
+is primary source for information on U.S. colleges, universities, and technical and vocational institutions.
+Most of the data used in this book is downloaded from - URL : <a class="reference external" href="https://nces.ed.gov/ipeds/use-the-data">https://nces.ed.gov/ipeds/use-the-data</a></p>
+<div class="figure align-center">
+<img alt="images/Chap01_01_IPEDSScreenShot.png" src="images/Chap01_01_IPEDSScreenShot.png" />
+</div>
+<p>Data is downloaded for three academic year (2017, 2018, and 2019).</p>
+<p>Disclaimer – We have modified this data to explain Snowflake functionality. The files used in this book are:</p>
+<div class="section" id="institutional-characteristics-files-hdr">
+<h2>Institutional Characteristics files [HDR]<a class="headerlink" href="#institutional-characteristics-files-hdr" title="Permalink to this headline">¶</a></h2>
+<p>This file contains directory information for every institution in the IPEDS universe.
+It includes name, address, city, state, zip code and various URL links to the institution’s home page,
+admissions, financial aid offices and the net price calculator</p>
+</div>
+<div class="section" id="month-enrollment-effy">
+<h2>12-Month Enrollment [EFFY]<a class="headerlink" href="#month-enrollment-effy" title="Permalink to this headline">¶</a></h2>
+<p>This file contains the unduplicated headcount of students enrolled over a
+12-month period for both undergraduate and graduate levels. Each record is
+uniquely defined by the variables IPEDS ID, and the level of enrollment.</p>
+</div>
+<div class="section" id="admissions-and-test-scores-adm">
+<h2>Admissions and Test Scores [ADM]<a class="headerlink" href="#admissions-and-test-scores-adm" title="Permalink to this headline">¶</a></h2>
+<p>This file contains information about the undergraduate selection process
+for entering first-time, degree/certificate-seeking students.</p>
+</div>
+<div class="section" id="student-charges-for-academic-year-programs-ic-ay">
+<h2>Student charges for academic year programs [IC*AY]<a class="headerlink" href="#student-charges-for-academic-year-programs-ic-ay" title="Permalink to this headline">¶</a></h2>
+<p>This file contains data on student charges for a full academic year.  Price of attendance includes
+amounts for published tuition and required fees, books and supplies, room and board and other expenses.</p>
+</div>
+<div class="section" id="code-mapping-data">
+<h2>Code Mapping Data<a class="headerlink" href="#code-mapping-data" title="Permalink to this headline">¶</a></h2>
+<p>List all the column codes and associated description
+(Example row – cngdstcd 3713=’NC, District 13’ can be interpreted as when table attribute
+(column) cngdstcd content 3713, description NC, District 13)</p>
+</div>
+<div class="section" id="data-collection-notes">
+<h2>Data collection notes<a class="headerlink" href="#data-collection-notes" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><p>Original text delimited data in</p></li>
+<li><p>EFFY file is converted to Jason format</p></li>
+<li><p>ADM file is converted to Parquet format</p></li>
+<li><p>IC*AY file is converted to ORC format</p></li>
+<li><p>There is no change in HDR file format (CSV format)</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Utilities used to convert original csv files into different data formats are available to download from URL: <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/utilities">https://github.com/versatiledp/Snowflake_dataplatform/tree/main/utilities</a></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the datafiles used throughout the books are available to download from URL: <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/data/input">https://github.com/versatiledp/Snowflake_dataplatform/tree/main/data/input</a></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#institutional-characteristics-files-hdr">Institutional Characteristics files [HDR]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#month-enrollment-effy">12-Month Enrollment [EFFY]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#admissions-and-test-scores-adm">Admissions and Test Scores [ADM]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#student-charges-for-academic-year-programs-ic-ay">Student charges for academic year programs [IC*AY]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-mapping-data">Code Mapping Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-collection-notes">Data collection notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap00_intro.html" title="previous chapter">Data Platform Overview</a></li>
+      <li>Next: <a href="Chap02_DataLoadSoftware.html" title="next chapter">Data Load Software</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Building data platform using snowflake &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Platform Overview" href="Chap00_intro.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="building-data-platform-using-snowflake">
+<h1>Building data platform using snowflake<a class="headerlink" href="#building-data-platform-using-snowflake" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap00_intro.html#data-source-layer">Data source layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap00_intro.html#data-processing-and-storage-layer">Data processing and storage layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap00_intro.html#analytics-layer">Analytics layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap00_intro.html#consumption-layer">Consumption layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap00_intro.html#snowflake-data-platform">Snowflake data platform</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap01_DataSource.html#institutional-characteristics-files-hdr">Institutional Characteristics files [HDR]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap01_DataSource.html#month-enrollment-effy">12-Month Enrollment [EFFY]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap01_DataSource.html#admissions-and-test-scores-adm">Admissions and Test Scores [ADM]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap01_DataSource.html#student-charges-for-academic-year-programs-ic-ay">Student charges for academic year programs [IC*AY]</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap01_DataSource.html#code-mapping-data">Code Mapping Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap01_DataSource.html#data-collection-notes">Data collection notes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap02_DataLoadSoftware.html#snowsql-cli">SnowSQL CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap02_DataLoadSoftware.html#snowpipe">Snowpipe</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap03_SnowflakeStageArea.html#user-stage">User Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap03_SnowflakeStageArea.html#table-stage">Table Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap03_SnowflakeStageArea.html#internal-named-stage">Internal Named Stage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html#internal-stage-area-for-ipeds">Internal stage area for IPEDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html#create-internal-stage-area-ipeds">Create internal stage area IPEDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html#load-the-files-to-internal-stage-for-ipeds">Load the files to internal stage for IPEDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html#data-flow-process">Data flow process</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap05_AttributeMapping.html#academic-institution">Academic Institution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap05_AttributeMapping.html#enrollment">Enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap05_AttributeMapping.html#institutional-charges">Institutional Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap05_AttributeMapping.html#admission-data">Admission data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap05_AttributeMapping.html#reference-lookup-data">Reference/lookup data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#academic-institution">Academic Institution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#od-table-for-academic-institution">OD table for Academic Institution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#snowflake-view-and-stored-procedure">Snowflake View and stored procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#managing-metadata-of-staged-file">Managing metadata of staged file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#stored-procedure-for-od-table-load">Stored procedure for OD table load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#academicinstitution-data-processing">AcademicInstitution data processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#carnegieclassification-transformation">CarnegieClassification transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#webaddress-transformation">WebAddress transformation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#load-dimension-table">Load Dimension table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#schema-drift">Schema drift</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#merge-using-hash-key">MERGE using hash key</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap07_Enrollment.html#enrollment">Enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap07_Enrollment.html#operational-data-od-table-for-enrollment">Operational data (OD) table for enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap07_Enrollment.html#enrollment-load">Enrollment Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap07_Enrollment.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutional-charges">Institutional Charges</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutional-charge-general">Institutional charge (General)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutional-charge-by-academic-branch">Institutional charge by academic branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutional-charge-by-residency-type">Institutional charge by residency type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutional-charge-by-category">Institutional charge by category</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#staged-file-for-institution-charges">Staged File for Institution Charges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#operational-data-od-table-for-institutional-charge">Operational data (OD) table for Institutional charge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#charge-by-academic-branch">Charge by academic branch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#charges-by-residency-type">Charges by Residency Type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#id1">Institutional Charge by Category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#stored-procedure-for-od-table-load">Stored procedure for OD table load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#servicing-layer-data-structure">Servicing layer data structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalcharge-entity">InstitutionalCharge Entity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalchargebyacademicbranch-entity">InstitutionalChargeByAcademicBranch Entity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalchargebyresidencytype-entity">InstitutionalChargeByResidencyType Entity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalchargebycategory-entity">InstitutionalChargeByCategory Entity</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#unpivot-data-to-load-into-the-servicing-layer">Unpivot data to load into the Servicing layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#v-od-institutionalchargebyacademicbranch">v_od_InstitutionalChargeByAcademicBranch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#v-od-institutionalchargebyresidencytype">v_od_InstitutionalChargeByResidencyType</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#v-od-institutionalchargebycategory">v_od_InstitutionalChargeByCategory</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#data-load-into-the-servicing-layer">Data load into the Servicing layer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalcharge-general-load">InstitutionalCharge (General) load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalchargebyacademicbranch-load">InstitutionalChargeByAcademicBranch load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalchargebyresidencytype-load">InstitutionalChargeByResidencyType load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalCharges.html#institutionalchargebycategory-load">InstitutionalChargeByCategory load</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalCharges.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html#ic-load-another-approach-using-json">IC load another approach - Using JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html#stored-procedure-for-od-table">Stored procedure for OD table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html#views-from-the-od-table">Views from the OD table</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html#v-od-institutionalchargebyacademicbranch">v_od_InstitutionalChargeByAcademicBranch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html#v-od-institutionalchargebyresidencytype">v_od_InstitutionalChargeByResidencyType</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html#v-od-institutionalchargebycategory">v_od_InstitutionalChargeByCategory</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap09_Admission%20Statistics.html#admission-statistics">Admission statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap09_Admission%20Statistics.html#od-table-for-admission-statistics">OD table for Admission Statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap09_Admission%20Statistics.html#stored-procedure-for-staging-table">Stored procedure for staging table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap09_Admission%20Statistics.html#admission-statistics-servicing-layer">Admission Statistics Servicing layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap09_Admission%20Statistics.html#admission-statistics-load-data">Admission Statistics Load data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap09_Admission%20Statistics.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap10_Lookup.html#lookup-entities">Lookup entities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap10_Lookup.html#merge-data">Merge data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap10_Lookup.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Chap11_WorkflowMgmt.html#workflow">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Chap11_WorkflowMgmt.html#summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="Chap00_intro.html" title="next chapter">Data Platform Overview</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

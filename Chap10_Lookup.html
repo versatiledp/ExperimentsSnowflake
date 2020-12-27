@@ -1,0 +1,405 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unstructured data &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Pipeline Orchestration" href="Chap11_WorkflowMgmt.html" />
+    <link rel="prev" title="Parquet Ingestion" href="Chap09_Admission%20Statistics.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="unstructured-data">
+<h1>Unstructured data<a class="headerlink" href="#unstructured-data" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="lookup-entities">
+<h2>Lookup entities<a class="headerlink" href="#lookup-entities" title="Permalink to this headline">¶</a></h2>
+<p>Files generated at the source system contains code value pair records for multiple lookup tables.
+Sample data from the source system is shown in the  below table.</p>
+<table class="colwidths-given docutils align-default" id="id1">
+<caption><span class="caption-text">Source system data layout</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 75%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>CodeName</p></th>
+<th class="head"><p>TableData</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>stabbr</p></td>
+<td><p>‘AL’=’Alabama’</p></td>
+</tr>
+<tr class="row-odd"><td><p>stabbr</p></td>
+<td><p>‘AK’=’Alaska’</p></td>
+</tr>
+<tr class="row-even"><td><p>stabbr</p></td>
+<td><p>‘AZ’=’Arizona’</p></td>
+</tr>
+<tr class="row-odd"><td><p>ACT</p></td>
+<td><p>‘A’=’Active - institution active’</p></td>
+</tr>
+<tr class="row-even"><td><p>ACT</p></td>
+<td><p>‘N’=’New (active) - added during the current year’</p></td>
+</tr>
+<tr class="row-odd"><td><p>ACT</p></td>
+<td><p>‘R’=’Restore (active) - restored to the current universe’</p></td>
+</tr>
+</tbody>
+</table>
+<p>The first column helps to identify the target entity
+and the second column is actual data row for the target tables. Data for multiple columns is
+separated by an <strong>‘=’</strong> sign.</p>
+<p>In the above example</p>
+<p>The StateAbbrevation table should be loaded with two attributes. The attribute values for the first row are <strong>‘AL’</strong> and
+<strong>‘Alabama’</strong>.
+Similarly AccountStatus should be loaded with the the values <strong>‘A’</strong> and <strong>‘Active - institution active’</strong></p>
+<p>Data is available for processing in the staged file &#64;IPEDS_CM</p>
+<p>The following query can be used to get rows from staged file</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT  t.$1 AS CodeName,
+        t.$2  TableData
+FROM   @IPEDS_CM t
+</pre></div>
+</div>
+<p>We have added a mapping table to map these codes to the entity name.
+Entities mapped to the code in this table, will be the destination for data in the column TableData.
+<strong>CodeDestinationTable</strong> is used to provide that linkage between the codes and entities.</p>
+<p>The following script will create and load the CodeDestinationTable table.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="n">CodeDestinationTable</span>
+<span class="p">(</span>
+                <span class="n">Code</span> <span class="n">STRING</span><span class="p">,</span>
+                <span class="n">TableName</span> <span class="n">STRING</span>
+<span class="p">);</span>
+
+
+<span class="n">INSERT</span> <span class="n">INTO</span> <span class="n">CodeDestinationTable</span> <span class="p">(</span><span class="n">Code</span><span class="p">,</span><span class="n">TableName</span><span class="p">)</span>
+<span class="n">SELECT</span> <span class="s1">&#39;ACT&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionStatus&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;c15basic&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2015&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;c18basic&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2018&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;c18ipug&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2000&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;carnegie&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span> <span class="o">--</span> <span class="n">Same</span> <span class="n">name</span> <span class="k">as</span> <span class="n">above</span>
+<span class="n">SELECT</span> <span class="s1">&#39;cbsa&#39;</span><span class="p">,</span><span class="s1">&#39;CoreBasedStatisticalArea&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;cbsatype&#39;</span><span class="p">,</span><span class="s1">&#39;CBSATypeMetropolitan&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;ccbasic&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2005&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;cngdstcd&#39;</span><span class="p">,</span><span class="s1">&#39;StateCongressionalDistricID&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;control&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionControl&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;countycd&#39;</span><span class="p">,</span><span class="s1">&#39;CountryCode&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;csa&#39;</span><span class="p">,</span><span class="s1">&#39;CombinedStatisticalArea&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;cyactive&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionActive&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;deathyr&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionDeletedYear&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;deggrant&#39;</span><span class="p">,</span><span class="s1">&#39;DegreeGrantingStatus&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;dfrcgid&#39;</span><span class="p">,</span><span class="s1">&#39;NCESDataFeedbackReport&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;dfrcuscg&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionDataFeedbackReport&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;f1syscod&#39;</span><span class="p">,</span><span class="s1">&#39;IdentificationNumberMultiCampusOrganization&#39;</span> <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;f1systyp&#39;</span><span class="p">,</span><span class="s1">&#39;MultiinstitutionMulticampusOrganization&#39;</span> <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;fips&#39;</span><span class="p">,</span><span class="s1">&#39;FIPSStateCode&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;groffer&#39;</span><span class="p">,</span><span class="s1">&#39;GraduateOffering&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;hbcu&#39;</span><span class="p">,</span><span class="s1">&#39;HistoricallyBlackCollege&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;HDEGOFR1&#39;</span><span class="p">,</span><span class="s1">&#39;HighestDegreeOffered&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;hloffer&#39;</span><span class="p">,</span><span class="s1">&#39;HighestLevelOffering&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;hospital&#39;</span><span class="p">,</span><span class="s1">&#39;HospitalInstitution&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;iclevel&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionLevel&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;instcat&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionalCategory&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;instsize&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionSizeCategory&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;landgrnt&#39;</span><span class="p">,</span><span class="s1">&#39;LandGrantInstitution&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;locale&#39;</span><span class="p">,</span><span class="s1">&#39;UrbanizationDegree&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;medical&#39;</span><span class="p">,</span><span class="s1">&#39;MedicalDegreeGranted&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;necta&#39;</span><span class="p">,</span><span class="s1">&#39;NewEnglandArea&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;obereg&#39;</span><span class="p">,</span><span class="s1">&#39;EconomicBureauRegion&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;opeflag&#39;</span><span class="p">,</span><span class="s1">&#39;TitleIVEligibilityCode&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;openpubl&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionOpenGeneralPublic&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;postsec&#39;</span><span class="p">,</span><span class="s1">&#39;PrimaryPostsecondaryIndicator&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;pseflag&#39;</span><span class="p">,</span><span class="s1">&#39;PostsecondaryInstitution&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;pset4flg&#39;</span><span class="p">,</span><span class="s1">&#39;PostsecondaryTitleIVInstitutionIndicator&#39;</span> <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;rptmth&#39;</span><span class="p">,</span><span class="s1">&#39;ReportingMethod&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;sector&#39;</span><span class="p">,</span><span class="s1">&#39;InstitutionSector&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;stabbr&#39;</span><span class="p">,</span><span class="s1">&#39;StateAbbreviation&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;tribal&#39;</span><span class="p">,</span><span class="s1">&#39;TribalCollege&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
+<span class="n">SELECT</span> <span class="s1">&#39;ugoffer&#39;</span><span class="p">,</span><span class="s1">&#39;UndergraduateOffering&#39;</span> <span class="p">;</span>
+</pre></div>
+</div>
+<p>The <strong>CodeDestination</strong> table is used to create the corresponding OD table, and
+service layer tables; furthermore, it is used for populating data dynamically from the staged file to the OD tables.</p>
+<p>We concatenated <strong>od_</strong> to the table name column from the CodeDestination entity. In the <strong>pr_od_CodeMapping_Load</strong> stored procedure
+we check if the corresponding table exist in the Snowflake. If the table is there, it is truncated and the staged file data for
+that code is loaded into the specific OD table. If the table is missing then, a new table is added. The newly added table is used
+to load data.</p>
+<p>The following script outlines this process.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_od_CodeMapping_Load()
+RETURNS STRING
+LANGUAGE javascript
+AS
+$$
+    var sql_GetTables = `SELECT DISTINCT UPPER(s.$1) AS CodeName ,
+                                    UPPER(TableName) AS DestinationTable
+                                FROM @IPEDS_CM s
+                INNER JOIN CodeDestinationTable ON s.$1 =  CodeDestinationTable.Code
+                                ORDER BY CodeName;`
+
+    CmdTables = {sqlText: sql_GetTables};
+    StmtTables = snowflake.createStatement(CmdTables);
+    rsTables = StmtTables.execute();
+    var strSQLCommands = &#39;&#39;;
+    var strTablePrefix = ` od_`
+    while (rsTables.next())  {
+        var strStgTableName         = strTablePrefix + rsTables.getColumnValue(&quot;DESTINATIONTABLE&quot;)
+        var sqlStgTableTruncate     = `TRUNCATE TABLE IF EXISTS ` + strStgTableName +`;`
+        var sqlStgTableCreate       = `CREATE TABLE IF NOT EXISTS` + strStgTableName+` (Code STRING, Description STRING);`
+        var sqlTargetTableCreate    = `CREATE TABLE IF NOT EXISTS` +&#39; &#39;+ rsTables.getColumnValue(&quot;DESTINATIONTABLE&quot;) +` (Code STRING, Description STRING);`
+        var sqlStgTableInsert       = `INSERT INTO `+ strStgTableName + `(Code,Description)
+            SELECT LEFT(CodeValuePair,POSITION(&#39;=&#39;,CodeValuePair,1)-1) Code
+                    ,RIGHT(CodeValuePair,LEN(CodeValuePair) - POSITION(&#39;=&#39;,CodeValuePair,1)) TableCodeValue
+            FROM(
+                SELECT $1 AS CodeName, $2 AS TableData, REPLACE($2,&#39;&#39;&#39;&#39;,&#39;&#39;) AS CodeValuePair
+                 FROM @IPEDS_CM t
+                WHERE UPPER($1) = &#39;`+ rsTables.getColumnValue(&quot;CODENAME&quot;) + `&#39; ) A;`
+        var arrSqlCmd =[4];
+        arrSqlCmd[0] = sqlStgTableTruncate
+        arrSqlCmd[1] = sqlStgTableCreate
+        arrSqlCmd[2] = sqlTargetTableCreate
+        arrSqlCmd[3] = sqlStgTableInsert
+        //strSQLCommands = strSQLCommands +strStgTableName +&quot;:&quot; +sqlStgTableTruncate+&quot;:--&gt;&quot;+sqlStgTableCreate+&quot;:--&gt;&quot;+sqlTargetTableCreate+&quot;:--&gt;&quot;+sqlStgTableInsert +&quot;\n&quot;
+        var sql_ExecCommand =&#39;&#39;;
+        for (var j=0;j&lt;arrSqlCmd.length; j++)
+        {
+            sql_ExecCommand = arrSqlCmd[j]
+            try
+            {
+                snowflake.execute(
+                    {sqlText: sql_ExecCommand}
+                );
+            }
+            catch(err)
+            {
+                return &quot;Failed :&quot; + err;
+            }
+        }
+    }
+    return &quot;Success&quot;;
+$$;
+</pre></div>
+</div>
+<p>This process will add the following tables to the system, and load data from the staged file.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>od_InstitutionStatus</p></li>
+<li><p>od_CarnegieClassification2015</p></li>
+<li><p>od_CarnegieClassification2018</p></li>
+<li><p>od_CarnegieClassification2000</p></li>
+<li><p>od_CarnegieClassification2000</p></li>
+<li><p>od_CoreBasedStatisticalArea</p></li>
+<li><p>od_CBSATypeMetropolitan</p></li>
+<li><p>od_CarnegieClassification2005</p></li>
+<li><p>od_StateCongressionalDistricID</p></li>
+<li><p>od_InstitutionControl</p></li>
+<li><p>od_CountryCode</p></li>
+<li><p>od_CombinedStatisticalArea</p></li>
+<li><p>od_InstitutionActive</p></li>
+<li><p>od_InstitutionDeletedYear</p></li>
+<li><p>od_DegreeGrantingStatus</p></li>
+<li><p>od_NCESDataFeedbackReport</p></li>
+<li><p>od_InstitutionDataFeedbackReport</p></li>
+<li><p>od_IdentificationNumberMultiCampusOrganization</p></li>
+<li><p>od_MultiinstitutionMulticampusOrganization</p></li>
+<li><p>od_FIPSStateCode</p></li>
+<li><p>od_GraduateOffering</p></li>
+<li><p>od_HistoricallyBlackCollege</p></li>
+<li><p>od_HighestDegreeOffered</p></li>
+<li><p>od_HighestLevelOffering</p></li>
+<li><p>od_HospitalInstitution</p></li>
+<li><p>od_InstitutionLevel</p></li>
+<li><p>od_InstitutionalCategory</p></li>
+<li><p>od_InstitutionSizeCategory</p></li>
+<li><p>od_LandGrantInstitution</p></li>
+<li><p>od_UrbanizationDegree</p></li>
+<li><p>od_MedicalDegreeGranted</p></li>
+<li><p>od_NewEnglandArea</p></li>
+<li><p>od_EconomicBureauRegion</p></li>
+<li><p>od_TitleIVEligibilityCode</p></li>
+<li><p>od_InstitutionOpenGeneralPublic</p></li>
+<li><p>od_PrimaryPostsecondaryIndicator</p></li>
+<li><p>od_PostsecondaryInstitution</p></li>
+<li><p>od_PostsecondaryTitleIVInstitutionIndicator</p></li>
+<li><p>od_ReportingMethod</p></li>
+<li><p>od_InstitutionSector</p></li>
+<li><p>od_StateAbbreviation</p></li>
+<li><p>od_TribalCollege</p></li>
+<li><p>od_UndergraduateOffering</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="merge-data">
+<h2>Merge data<a class="headerlink" href="#merge-data" title="Permalink to this headline">¶</a></h2>
+<p>Once data is loaded into the operational data zone, we use a similar approach to merge data to the final servicing layer entities.
+Dynamically we check underlying entities, any missing entities are added. Data is merged from the OD to these entities using
+<strong>pr_CodeMapping_Load</strong></p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>DROP PROCEDURE IF EXISTS pr_CodeMapping_Load();
+
+CREATE OR REPLACE PROCEDURE pr_CodeMapping_Load()
+RETURNS STRING
+LANGUAGE javascript
+AS
+$$
+        var sql_GetTables =
+        `SELECT DISTINCT TableName AS DestinationTable
+      FROM CodeDestinationTable
+      ORDER BY DestinationTable;`
+
+        CmdTables = {sqlText: sql_GetTables};
+        StmtTables = snowflake.createStatement(CmdTables);
+        rsTables = StmtTables.execute();
+        //var strCommands = &#39;&#39;;
+        var strTablePrefix = `od_`
+        while (rsTables.next())  {
+        var strStgTableName             = &quot; &quot;
+                        + strTablePrefix
+                        + rsTables.getColumnValue(&quot;DESTINATIONTABLE&quot;)
+        var sqlMergeSQL         =
+        `MERGE INTO `
+                + rsTables.getColumnValue(&quot;DESTINATIONTABLE&quot;) + ` t
+           USING ` + strStgTableName + ` s ON t.Code = s.Code
+                WHEN MATCHED AND (t.Description &lt;&gt; s.Description) THEN
+                        UPDATE SET Description  = s.Description
+                WHEN NOT MATCHED THEN
+                        INSERT (Code,Description)
+                        VALUES (s.Code,s.Description)
+                        ;`
+                //strCommands = strCommands + sqlMergeSQL +&#39;--&gt;&#39;
+                try
+                {
+                        snowflake.execute(
+                           {sqlText: sqlMergeSQL}
+                        );
+                }
+                catch(err)
+                {
+                        return &quot;Failed :&quot; + err;
+                }
+        }
+        return &quot;success&quot; //strCommands
+$$;
+</pre></div>
+</div>
+<p>The complete loading of code mapping data is achieved by calling these stored procedures.
+The code to call these SPs is shown below</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CALL</span>  <span class="n">pr_od_CodeMapping_Load</span><span class="p">();</span>
+<span class="n">CALL</span>  <span class="n">pr_CodeMapping_Load</span><span class="p">();</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>There is lot of flexibility built in Snowflake to manage variety of data needs.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<blockquote>
+<div><p>Code available to download  at <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/source/code/chapter10">chapter10</a>.</p>
+</div></blockquote>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Unstructured data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lookup-entities">Lookup entities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#merge-data">Merge data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap09_Admission%20Statistics.html" title="previous chapter">Parquet Ingestion</a></li>
+      <li>Next: <a href="Chap11_WorkflowMgmt.html" title="next chapter">Pipeline Orchestration</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

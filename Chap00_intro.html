@@ -1,0 +1,223 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Platform Overview &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data source" href="Chap01_DataSource.html" />
+    <link rel="prev" title="Building data platform using snowflake" href="index.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="data-platform-overview">
+<h1>Data Platform Overview<a class="headerlink" href="#data-platform-overview" title="Permalink to this headline">¶</a></h1>
+<p>Modern data architecture allow enterprises to ingest data coming from
+multiple systems, in a variety of data formats, different speeds, and unknown
+intervals. Layered data platform design makes it easy to process big
+data efficiently. It enables organizations to quickly deploy new data
+analytics business case driven solutions to drive revenue and
+profitability.</p>
+<p>There are four main pillers of modern data platforms</p>
+<ul class="simple">
+<li><p>Data source layer</p></li>
+<li><p>Data processing and storage layer</p></li>
+<li><p>Analytics layer</p></li>
+<li><p>Consumption layer</p></li>
+</ul>
+<div class="section" id="data-source-layer">
+<h2>Data source layer<a class="headerlink" href="#data-source-layer" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Data sources can be inside the enterprise or external</p></li>
+<li><p>Data sources generate data in real-time and in batch mode</p></li>
+<li><p>A variety of data formats can be - structured, semi-structured, or unstructured</p></li>
+<li><p>The velocity (speed of arrival) and volume (delivery amount) will differ by sources</p></li>
+</ul>
+</div>
+<div class="section" id="data-processing-and-storage-layer">
+<h2>Data processing and storage layer<a class="headerlink" href="#data-processing-and-storage-layer" title="Permalink to this headline">¶</a></h2>
+<p>It receives data from the source, converts the data into a format
+comprehensible for the data servicing and analytics tool, and stores the
+data according to its format. For example, large amounts of data can be
+stored in the Hadoop distributed file system (HDFS) store. Large data
+processing can be performed through Hadoop/Spark system. Data may
+undergo format changes as it is processed through these systems. Cloud
+service providers like Amazon, Google, and Microsoft allow a user to build and
+operate data-centric applications with an infinite scale. Robust and
+inexpensive storage is fundamental to the operation and scalability of
+big data architecture.</p>
+<p>BigQuery, Azure Synapse,Amazon Redshift, and Snowflake
+are used as standalone solutions for big data processing or in
+combination of Hadoop/Spark ecosystems</p>
+</div>
+<div class="section" id="analytics-layer">
+<h2>Analytics layer<a class="headerlink" href="#analytics-layer" title="Permalink to this headline">¶</a></h2>
+<p>The Analytics layer reads the data ingested and transformed by the data
+processing and storage layer of big data ecosystem. This layer consists
+varieties of data analytic tools for different user requirements. This
+layer provides the data discovery mechanisms from  huge volumes of
+data. Apache spark SQL, Hive, Apache spark streaming, Machine learning
+libraries, Apache spark GraphX, SQL libraries, and number of other tool
+sets are utilized in this layer to understand underlying data landscape.</p>
+</div>
+<div class="section" id="consumption-layer">
+<h2>Consumption layer<a class="headerlink" href="#consumption-layer" title="Permalink to this headline">¶</a></h2>
+<p>Also called the business intelligence layer,this layer
+receives results from the Analytical layer and presents them
+using visualization tools, and
+business processes</p>
+<p>The following diagram summarize layers in data management solution</p>
+<a class="reference external image-reference" href="https://github.com/versatiledp/Snowflake_dataplatform/blob/main/images/Chap00_DataPlatform_01.JPG"><img alt="Alternative text" src="images/Chap00_01_DataPlatform.jpg" style="width: 400px;" /></a>
+</div>
+<div class="section" id="snowflake-data-platform">
+<h2>Snowflake data platform<a class="headerlink" href="#snowflake-data-platform" title="Permalink to this headline">¶</a></h2>
+<p>This book is focused on using Snowflake for big data processing.</p>
+<p>Snowflake is a cloud based SaaS (Software-as-a-Service) data warehouse
+solutionl some of its advantages:</p>
+<ul class="simple">
+<li><p>Is faster, easier to use, scalable, and far more flexible than other data platforms</p></li>
+<li><p>Has an intuitive and simple interface</p></li>
+<li><p>Services can be started quickly and delivers high-quality performance</p></li>
+<li><p>Solves the concurrency issues with its multi-cluster warehouse architecture</p></li>
+<li><p>Loads and processes the data quickly</p></li>
+<li><p>Is a fully automated platform</p></li>
+<li><p>Supports auto-scaling, big data workload, and data sharing</p></li>
+<li><p>Allows a user to scale up the virtual warehouse and provides elasticity as per needs</p></li>
+</ul>
+<p>The Snowflake architecture consists of three layers:
+storage, compute, and services .Each of these layers can be scaled independently.
+so organizations can scale up or down as needed and pay only for the resources they used.</p>
+<p>In the Snowflake platform data can be ingested from a variety of data
+formats like Parquet, CSV, ORC, JDBC, ODBC, and XML data sources.
+It supports JSON to a great extent. Furthermore it:</p>
+<ul class="simple">
+<li><p>Provides full support to create views on different data formats.</p></li>
+<li><p>Allows data sharing support for securely sharing data with other Snowflake accounts.</p></li>
+<li><p>Permits replication and syncing databases across multiple accounts in different regions.</p></li>
+<li><p>Enables time travel functions to query the history of data changes over a period of time.</p></li>
+</ul>
+<p>Snowflake is a cloud-agnostic platform providing a unified data management across multiple cloud service providers like Azure,
+AWS, and GCP. In other words, the Snowflake data warehouse can be built on top of Amazon web services, Microsoft Azure
+cloud infrastructure, or Google cloud.</p>
+<p>The Snowflake command line client - SnowSQL can also access all aspects of managing and using Snowflake.
+ODBC and JDBC drivers provides easy connectivity from the application/reporting layer to Snowflake.</p>
+<p>This book includes:</p>
+<ul class="simple">
+<li><p>Data Sources</p></li>
+<li><p>Different source data formats, available to build platform</p></li>
+<li><p>Snowflake database development</p></li>
+<li><p>Snowflake data transformation</p></li>
+<li><p>Data pipeline orchestration</p></li>
+<li><p>Data lineage, pipeline audit and control</p></li>
+<li><p>SnowSQL and JavaScript based stored procedures</p></li>
+<li><p>Business use cases, users are tasked to solve</p></li>
+<li><p>Data visualization</p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Platform Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data-source-layer">Data source layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-processing-and-storage-layer">Data processing and storage layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analytics-layer">Analytics layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#consumption-layer">Consumption layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snowflake-data-platform">Snowflake data platform</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Building data platform using snowflake</a></li>
+      <li>Next: <a href="Chap01_DataSource.html" title="next chapter">Data source</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

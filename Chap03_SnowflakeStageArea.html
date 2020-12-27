@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snowflake Staged Area &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Ingesting Snowflake Stage" href="Chap04_IngestingDataSnowflakeStage.html" />
+    <link rel="prev" title="Data Load Software" href="Chap02_DataLoadSoftware.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="snowflake-staged-area">
+<h1>Snowflake Staged Area<a class="headerlink" href="#snowflake-staged-area" title="Permalink to this headline">¶</a></h1>
+<p>Snowflake allows several types of staged file areas. A stage is a temporary storage area in the Snowflake warehouse.</p>
+<p>Snowflake supports two types of stages for storing data files- external and internal.</p>
+<p>External stages are storage locations outside the Snowflake environment in another cloud storage location.
+It could be Amazon S3 storage, Microsoft Azure storage, and Google Cloud Storage buckets. This provides greater
+flexibility to accessing the data in Snowflake.</p>
+<div class="line-block">
+<div class="line">The internal stage stores data files internally within Snowflake. Internal stages can be either permanent or temporary.</div>
+</div>
+<div class="line-block">
+<div class="line">Internal storage is classified into three categories.</div>
+</div>
+<div class="section" id="user-stage">
+<h2>User Stage<a class="headerlink" href="#user-stage" title="Permalink to this headline">¶</a></h2>
+<p>Each Snowflake user is attached to the default stage to store the file. This is only accessible by specific user</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>put file://D:\Snowflake\sample_file.csv @~/staged;
+</pre></div>
+</div>
+<p>The file will be uploaded to the user stage and a user can verify the same using LIST command.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>list @~/staged;
+</pre></div>
+</div>
+<p>The user stages are referenced using &#64;~.</p>
+<p>For example, use LIST &#64;~ to list the files in a user stage</p>
+</div>
+<div class="section" id="table-stage">
+<h2>Table Stage<a class="headerlink" href="#table-stage" title="Permalink to this headline">¶</a></h2>
+<p>Each table has a Snowflake stage allocated for storing files. Multiple users can access a single table stage area.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>put file://D:\Snowflake\sample_file.csv @%test;
+</pre></div>
+</div>
+<p>Users can also specify the subfolder within the table stage where they want to upload files</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>put file://D:\Snowflake\sample_file.csv @%test/sample_csv/;
+</pre></div>
+</div>
+<p>The Table stages are referenced using &#64;%tableName.</p>
+<p>For example, to list the files in a table stage</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>use LIST @%test
+</pre></div>
+</div>
+<p>Table stages have the same name as the table. The table stages cannot be altered or dropped.</p>
+<p>Table stages do not support setting file format options. Instead, they specify file format details in the COPY command.</p>
+</div>
+<div class="section" id="internal-named-stage">
+<h2>Internal Named Stage<a class="headerlink" href="#internal-named-stage" title="Permalink to this headline">¶</a></h2>
+<p>Internal stages are named database objects. Internal named stages are the recommended stage
+to load the tables. It can be accessed by multiple users. Internal stage can
+load multiple tables. File formats can be specified while creating an internal Named stage.</p>
+<p>Internal storage copies data within the Snowflake warehouse as shown below.</p>
+<div class="figure align-center">
+<img alt="images/Chap03_01_InternalStorage.png" src="images/Chap03_01_InternalStorage.png" />
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Snowflake Staged Area</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#user-stage">User Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#table-stage">Table Stage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#internal-named-stage">Internal Named Stage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalChargesJson.html">ORC ingestion - 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap02_DataLoadSoftware.html" title="previous chapter">Data Load Software</a></li>
+      <li>Next: <a href="Chap04_IngestingDataSnowflakeStage.html" title="next chapter">Ingesting Snowflake Stage</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

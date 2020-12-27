@@ -1,0 +1,431 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ORC ingestion - 2 &#8212; Pustaka 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Parquet Ingestion" href="Chap09_Admission%20Statistics.html" />
+    <link rel="prev" title="ORC Ingestion" href="Chap08_InstitutionalCharges.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="orc-ingestion-2">
+<h1>ORC ingestion - 2<a class="headerlink" href="#orc-ingestion-2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ic-load-another-approach-using-json">
+<h2>IC load another approach - Using JSON<a class="headerlink" href="#ic-load-another-approach-using-json" title="Permalink to this headline">¶</a></h2>
+<p>In this approach, we have restructured the OD table od_InstitutionalCharge by grouping various
+columns using the JSON data types. For example, all the columns associated with
+institutional charges by academic branches are grouped together as a single
+column InstitutionalChargeByAcademicBranch of VARIANT data type.
+Similar kind of grouping is done for institutional charges by residency and category columns also.
+The new structure of the staging table is as below.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">od_InstitutionalCharge</span> <span class="p">(</span>
+        <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InDistrictAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InDistrictRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InDistrictPerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InStateAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InStateRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InStatePerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">OutOfStateAverageTuitionFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">OutOfStateRequiredFeesFullTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">OutOfStatePerCreditHourChargeForPartTimeUndergraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InDistrictAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InDistrictRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InDistrictPerCreditHourChargePartTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InStateAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InStateRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InStatePerCreditHourChargePartTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">OutOfStateAverageTuitionFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">OutOfStateRequiredFeesFullTimeGraduates</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">OutOfStatePerCreditHourChargePartTimeGraduate</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">InstitutionalChargeByAcademicBranch</span> <span class="n">VARIANT</span><span class="p">,</span>
+        <span class="n">InstitutionalChargeByResidencyType</span>    <span class="n">VARIANT</span><span class="p">,</span>
+        <span class="n">InstitutionalChargeByCategory</span>       <span class="n">VARIANT</span><span class="p">,</span>
+        <span class="n">AcademicYear</span> <span class="n">INTEGER</span><span class="p">,</span>
+        <span class="n">IngestedFileName</span> <span class="n">STRING</span><span class="p">,</span>
+        <span class="n">RowNumber</span> <span class="n">INTEGER</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="stored-procedure-for-od-table">
+<h2>Stored procedure for OD table<a class="headerlink" href="#stored-procedure-for-od-table" title="Permalink to this headline">¶</a></h2>
+<p>The stored procedure <strong>pr_od_InstitutionalCharge_Load</strong> for
+loading data into the staging table od_InstitutionalCharge has been modified to accommodate the structural change.
+Now we are using <strong>OBJECT_CONSTRUCT</strong> function to create JSON strings by combining various columns in the stored procedure.
+This JSON string is used to update the following VARIANT columns used in the staging table.
+The new VARIANT columns are :</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>InstitutionalChargeByAcademicBranch</p></li>
+<li><p>InstitutionalChargeByResidencyType</p></li>
+<li><p>InstitutionalChargeByCategory</p></li>
+</ul>
+</div></blockquote>
+<p>Here is the script for the stored procedure <strong>pr_od_InstitutionalCharge_Load</strong>.
+This stored procedure takes the YEAR parameter and retrieves the records from the staged file for that year.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_od_InstitutionalCharge_Load(YEAR FLOAT)
+RETURNS STRING
+LANGUAGE javascript
+EXECUTE AS OWNER
+AS
+$$
+var sql_command = `
+    INSERT INTO od_InstitutionalCharge
+    (   InstitutionIdentifier   ,
+                InDistrictAverageTuitionFullTimeUndergraduates  ,
+                InDistrictRequiredFeesFullTimeUndergraduates    ,
+                InDistrictPerCreditHourChargeForPartTimeUndergraduates  ,
+                InStateAverageTuitionFullTimeUndergraduates     ,
+                InStateRequiredFeesFullTimeUndergraduates       ,
+                InStatePerCreditHourChargeForPartTimeUndergraduates     ,
+                OutOfStateAverageTuitionFullTimeUndergraduates  ,
+                OutOfStateRequiredFeesFullTimeUndergraduates    ,
+                OutOfStatePerCreditHourChargeForPartTimeUndergraduates  ,
+                InDistrictAverageTuitionFullTimeGraduates       ,
+                InDistrictRequiredFeesFullTimeGraduates ,
+                InDistrictPerCreditHourChargePartTimeGraduates  ,
+                InStateAverageTuitionFullTimeGraduates  ,
+                InStateRequiredFeesFullTimeGraduates    ,
+                InStatePerCreditHourChargePartTimeGraduates     ,
+                OutOfStateAverageTuitionFullTimeGraduates       ,
+                OutOfStateRequiredFeesFullTimeGraduates ,
+                OutOfStatePerCreditHourChargePartTimeGraduate   ,
+                InstitutionalChargeByAcademicBranch,
+        InstitutionalChargeByResidencyType,
+        InstitutionalChargeByCategory,
+        AcademicYear,
+        IngestedFileName,
+        RowNumber
+        )
+SELECT
+  $1:UNITID     :: VARCHAR AS InstitutionIdentifier,
+  $1:TUITION1   :: INTEGER AS InDistrictAverageTuitionFullTimeUndergraduates,
+  $1:FEE1       :: INTEGER AS InDistrictRequiredFeesFullTimeUndergraduates,
+  $1:HRCHG1     :: INTEGER AS InDistrictPerCreditHourChargeForPartTimeUndergraduates,
+  $1:TUITION2   :: INTEGER AS InStateAverageTuitionFullTimeUndergraduates,
+  $1:FEE2       :: INTEGER AS InStateRequiredFeesFullTimeUndergraduates,
+  $1:HRCHG2     :: INTEGER AS InStatePerCreditHourChargeForPartTimeUndergraduates,
+  $1:TUITION3   :: INTEGER AS OutOfStateAverageTuitionFullTimeUndergraduates,
+  $1:FEE3       :: INTEGER AS OutOfStateRequiredFeesFullTimeUndergraduates,
+  $1:HRCHG3     :: INTEGER AS OutOfStatePerCreditHourChargeForPartTimeUndergraduates,
+  $1:TUITION5   :: INTEGER AS InDistrictAverageTuitionFullTimeGraduates,
+  $1:FEE5       :: INTEGER AS InDistrictRequiredFeesFullTimeGraduates,
+  $1:HRCHG5     :: INTEGER AS InDistrictPerCreditHourChargePartTimeGraduates,
+  $1:TUITION6   :: INTEGER AS InStateAverageTuitionFullTimeGraduates,
+  $1:FEE6       :: INTEGER AS InStateRequiredFeesFullTimeGraduates,
+  $1:HRCHG6     :: INTEGER AS InStatePerCreditHourChargePartTimeGraduates,
+  $1:TUITION7   :: INTEGER AS OutOfStateAverageTuitionFullTimeGraduates,
+  $1:FEE7       :: INTEGER AS OutOfStateRequiredFeesFullTimeGraduates,
+  $1:HRCHG7     :: INTEGER AS OutOfStatePerCreditHourChargePartTimeGraduate,
+  OBJECT_CONSTRUCT(&#39;Chiropractic_InStateTuition&#39;,$1:ISPROF1::INTEGER,
+        &#39;Chiropractic_InStateRequiredFees&#39;,$1:ISPFEE1::INTEGER,
+        &#39;Chiropractic_OutOfStateTuition&#39;,$1:OSPROF1::INTEGER,
+        &#39;Chiropractic_OutOfStateRequiredFees&#39;,$1:OSPFEE1::INTEGER,
+
+        &#39;Dentistry_InStateTuition&#39;,$1:ISPROF2::INTEGER,
+        &#39;Dentistry_InStateRequiredFees&#39;,$1:ISPFEE2::INTEGER,
+        &#39;Dentistry_OutOfStateTuition&#39;,$1:OSPROF2::INTEGER,
+        &#39;Dentistry_OutOfStateRequiredFees&#39;,$1:OSPFEE2::INTEGER,
+
+        &#39;Medicine_InStateTuition&#39;,$1:ISPROF3::INTEGER,
+        &#39;Medicine_InStateRequiredFees&#39;,$1:ISPFEE3::INTEGER,
+        &#39;Medicine_OutOfStateTuition&#39;,$1:OSPROF3::INTEGER,
+        &#39;Medicine_OutOfStateRequiredFees&#39;,$1:OSPFEE3::INTEGER,
+
+        &#39;Optometry_InStateTuition&#39;,$1:ISPROF4::INTEGER,
+        &#39;Optometry_InStateRequiredFees&#39;,$1:ISPFEE4::INTEGER,
+        &#39;Optometry_OutOfStateTuition&#39;,$1:OSPROF4::INTEGER,
+        &#39;Optometry_OutOfStateRequiredFees&#39;,$1:OSPFEE4::INTEGER,
+
+        &#39;OsteopathicMedicine_InStateTuition&#39;,$1:ISPROF5::INTEGER,
+        &#39;OsteopathicMedicine_InStateRequiredFees&#39;,$1:ISPFEE5::INTEGER,
+        &#39;OsteopathicMedicine_OutOfStateTuition&#39;,$1:OSPROF5::INTEGER,
+        &#39;OsteopathicMedicine_OutOfStateRequiredFees&#39;,$1:OSPFEE5::INTEGER,
+
+        &#39;Pharmacy_InStateTuition&#39;,$1:ISPROF6::INTEGER,
+        &#39;Pharmacy_InStateRequiredFees&#39;,$1:ISPFEE6::INTEGER,
+        &#39;Pharmacy_OutOfStateTuition&#39;,$1:OSPROF6::INTEGER,
+        &#39;Pharmacy_OutOfStateRequiredFees&#39;,$1:OSPFEE6::INTEGER,
+
+        &#39;Podiatry_InStateTuition&#39;,$1:ISPROF7::INTEGER,
+        &#39;Podiatry_InStateRequiredFees&#39;,$1:ISPFEE7::INTEGER,
+        &#39;Podiatry_OutOfStateTuition&#39;,$1:OSPROF7::INTEGER,
+        &#39;Podiatry_OutOfStateRequiredFees&#39;,$1:OSPFEE7::INTEGER,
+
+        &#39;VeterinaryMedicine_InStateTuition&#39;,$1:ISPROF8::INTEGER,
+        &#39;VeterinaryMedicine_InStateRequiredFees&#39;,$1:ISPFEE8::INTEGER,
+        &#39;VeterinaryMedicine_OutOfStateTuition&#39;,$1:OSPROF8::INTEGER,
+        &#39;VeterinaryMedicine_OutOfStateRequiredFees&#39;,$1:OSPFEE8::INTEGER,
+
+        &#39;Law_InStateTuition&#39;,$1:ISPROF9::INTEGER,
+        &#39;Law_InStateRequiredFees&#39;,$1:ISPFEE9::INTEGER,
+        &#39;Law_OutOfStateTuition&#39;,$1:OSPROF9::INTEGER,
+        &#39;Law_OutOfStateRequiredFees&#39;,$1:OSPFEE9::INTEGER
+        ) AS InstitutionalChargeByAcademicBranch,
+        OBJECT_CONSTRUCT(&#39;InDistrictTuitionYear0&#39;,$1:CHG1AT0::INTEGER,
+        &#39;InDistrictFeesYear0&#39;,$1:CHG1AF0::INTEGER,
+        &#39;InDistrictTuitionFeesYear0&#39;,$1:CHG1AY0::INTEGER,
+
+        &#39;InDistrictTuitionYear1&#39;,$1:CHG1AT1::INTEGER,
+        &#39;InDistrictFeesYear1&#39;,$1:CHG1AF1::INTEGER,
+        &#39;InDistrictTuitionFeesYear1&#39;,$1:CHG1AY1::INTEGER,
+
+        &#39;InDistrictTuitionYear2&#39;,$1:CHG1AT2::INTEGER,
+        &#39;InDistrictFeesYear2&#39;,$1:CHG1AF2::INTEGER,
+        &#39;InDistrictTuitionFeesYear2&#39;,$1:CHG1AY2::INTEGER,
+
+        &#39;InDistrictTuitionYear3&#39;,$1:CHG1AT3::INTEGER,
+        &#39;InDistrictFeesYear3&#39;,$1:CHG1AF3::INTEGER,
+        &#39;InDistrictTuitionFeesYear3&#39;,$1:CHG1AY3::INTEGER,
+
+        &#39;InStateTuitionYear0&#39;,$1:CHG2AT0::INTEGER,
+        &#39;InStateFeesYear0&#39;,$1:CHG2AF0::INTEGER,
+        &#39;InStateTuitionFeesYear0&#39;,$1:CHG2AY0::INTEGER,
+
+        &#39;InStateTuitionYear1&#39;,$1:CHG2AT1::INTEGER,
+        &#39;InStateFeesYear1&#39;,$1:CHG2AF1::INTEGER,
+        &#39;InStateTuitionFeesYear1&#39;,$1:CHG2AY1::INTEGER,
+
+        &#39;InStateTuitionYear2&#39;,$1:CHG2AT2::INTEGER,
+        &#39;InStateFeesYear2&#39;,$1:CHG2AF2::INTEGER,
+        &#39;InStateTuitionFeesYear2&#39;,$1:CHG2AY2::INTEGER,
+
+        &#39;InStateTuitionYear3&#39;,$1:CHG2AT3::INTEGER,
+        &#39;InStateFeesYear3&#39;,$1:CHG2AF3::INTEGER,
+        &#39;InStateTuitionFeesYear3&#39;,$1:CHG2AY3::INTEGER,
+
+        &#39;OutOfStateTuitionYear0&#39;,$1:CHG3AT0::INTEGER,
+        &#39;OutOfStateFeesYear0&#39;,$1:CHG3AF0::INTEGER,
+        &#39;OutOfStateTuitionFeesYear0&#39;,$1:CHG3AY0::INTEGER,
+        &#39;OutOfStateTuitionYear1&#39;,$1:CHG3AT1::INTEGER,
+        &#39;OutOfStateFeesYear1&#39;,$1:CHG3AF1::INTEGER,
+        &#39;OutOfStateTuitionFeesYear1&#39;,$1:CHG3AY1::INTEGER,
+        &#39;OutOfStateTuitionYear2&#39;,$1:CHG3AT2::INTEGER,
+        &#39;OutOfStateFeesYear2&#39;,$1:CHG3AF2::INTEGER,
+        &#39;OutOfStateTuitionFeesYear2&#39;,$1:CHG3AY2::INTEGER,
+        &#39;OutOfStateTuitionYear3&#39;,$1:CHG3AT3::INTEGER,
+        &#39;OutOfStateFeesYear3&#39;,$1:CHG3AF3::INTEGER,
+        &#39;OutOfStateTuitionFeesYear3&#39;,$1:CHG3AY3::INTEGER
+        ) AS InstitutionalChargeByResidencyType,
+        OBJECT_CONSTRUCT (
+        &#39;BooksSuppliesYear0&#39;,                      $1:CHG4AY0::INTEGER,
+        &#39;BooksSuppliesYear1&#39;,                      $1:CHG4AY1::INTEGER,
+        &#39;BooksSuppliesYear3&#39;,                      $1:CHG4AY3::INTEGER,
+        &#39;BooksSuppliesYear2&#39;,                      $1:CHG4AY2::INTEGER,
+        &#39;OnCampusRoomBoardYear0&#39;,                  $1:CHG5AY0::INTEGER,
+        &#39;OnCampusRoomBoardYear1&#39;,                  $1:CHG5AY1::INTEGER,
+        &#39;OnCampusRoomBoardYear2&#39;,                  $1:CHG5AY2::INTEGER,
+        &#39;OnCampusRoomBoardYear3&#39;,                  $1:CHG5AY3::INTEGER,
+        &#39;OnCampusOtherExpensesYear0&#39;,              $1:CHG6AY0::INTEGER,
+        &#39;OnCampusOtherExpensesYear1&#39;,              $1:CHG6AY1::INTEGER,
+        &#39;OnCampusOtherExpensesYear2&#39;,              $1:CHG6AY2::INTEGER,
+        &#39;OnCampusOtherExpensesYear3&#39;,              $1:CHG6AY3::INTEGER,
+        &#39;OffCampusNotWithFamilyRoomBoardYear0&#39;,    $1:CHG7AY0::INTEGER,
+        &#39;OffCampusNotWithFamilyRoomBoardYear1&#39;,    $1:CHG7AY1::INTEGER,
+        &#39;OffCampusNotWithFamilyRoomBoardYear2&#39;,    $1:CHG7AY2::INTEGER,
+        &#39;OffCampusNotWithFamilyRoomBoardYear3&#39;,    $1:CHG7AY3::INTEGER,
+        &#39;OffCampusNotWithFamilyOtherExpensesYear0&#39;,$1:CHG8AY0::INTEGER,
+        &#39;OffCampusNotWithFamilyOtherExpensesYear1&#39;,$1:CHG8AY1::INTEGER,
+        &#39;OffCampusNotWithFamilyOtherExpensesYear2&#39;,$1:CHG8AY2::INTEGER,
+        &#39;OffCampusNotWithFamilyOtherExpensesYear3&#39;,$1:CHG8AY3::INTEGER,
+        &#39;OffCampusWithFamilyOtherExpensesYear0&#39;,   $1:CHG9AY0::INTEGER,
+        &#39;OffCampusWithFamilyOtherExpensesYear1&#39;,   $1:CHG9AY1::INTEGER,
+        &#39;OffCampusWithFamilyOtherExpensesYear2&#39;,   $1:CHG9AY2::INTEGER,
+        &#39;OffCampusWithFamilyOtherExpensesYear3&#39;,   $1:CHG9AY3::INTEGER
+                ) AS InstitutionalChargeByCategory,
+          LEFT(MetaData$FileName, 4) AS AcademicYear,
+          metadata$filename IngestedFileName,
+          metadata$file_row_number RowNumber
+        FROM
+          @IPEDS_IC
+        WHERE LEFT(MetaData$FileName,4) = ` + YEAR.toString()+`;`
+
+    try {
+        snowflake.execute (
+          {sqlText: sql_command}
+          );
+        }
+    catch (err) {
+        return &quot;Failed: &quot; + err;  // Return a success/error indicator.
+        }
+    return &quot;success.&quot;;  // Return a success/error indicator.
+
+$$
+;
+</pre></div>
+</div>
+</div>
+<div class="section" id="views-from-the-od-table">
+<h2>Views from the OD table<a class="headerlink" href="#views-from-the-od-table" title="Permalink to this headline">¶</a></h2>
+<p>The following views are simplified compared to UNION structure using the Snowflake SQL command LATERAL FLATTEN.
+●       v_od_InstitutionalChargeByAcademicBranch
+●       v_od_InstitutionalChargeByResidencyType
+●       v_od_InstitutionalChargeByCategory</p>
+<div class="section" id="v-od-institutionalchargebyacademicbranch">
+<h3>v_od_InstitutionalChargeByAcademicBranch<a class="headerlink" href="#v-od-institutionalchargebyacademicbranch" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">VIEW</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">v_od_InstitutionalChargeByAcademicBranch</span><span class="p">;</span>
+
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">VIEW</span> <span class="n">v_od_InstitutionalChargeByAcademicBranch</span> <span class="n">AS</span>
+<span class="n">SELECT</span>
+        <span class="n">AcademicYear</span><span class="p">,</span>
+        <span class="n">InstitutionIdentifier</span><span class="p">,</span>
+        <span class="n">LEFT</span><span class="p">(</span><span class="n">AcademicBranch</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="n">POSITION</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">AcademicBranch</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">AS</span> <span class="n">BranchName</span><span class="p">,</span>
+        <span class="n">RIGHT</span><span class="p">(</span><span class="n">AcademicBranch</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="n">LEN</span><span class="p">(</span><span class="n">AcademicBranch</span><span class="o">.</span><span class="n">Key</span><span class="p">)</span><span class="o">-</span><span class="n">POSITION</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span><span class="n">AcademicBranch</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span> <span class="n">AS</span> <span class="n">ChargeType</span><span class="p">,</span>
+        <span class="n">AcademicBranch</span><span class="o">.</span><span class="n">VALUE</span> <span class="n">AS</span> <span class="n">Amount</span>
+        <span class="n">FROM</span> <span class="n">Od_InstitutionalCharge</span><span class="p">,</span>
+                <span class="n">LATERAL</span> <span class="n">FLATTEN</span><span class="p">(</span><span class="n">INPUT</span> <span class="o">=&gt;</span> <span class="n">InstitutionalChargeByAcademicBranch</span><span class="p">)</span> <span class="n">AcademicBranch</span>
+    <span class="p">;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="v-od-institutionalchargebyresidencytype">
+<h3>v_od_InstitutionalChargeByResidencyType<a class="headerlink" href="#v-od-institutionalchargebyresidencytype" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">VIEW</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">V_od_InstitutionalChargeByResidencyType</span><span class="p">;</span>
+
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">VIEW</span> <span class="n">v_od_InstitutionalChargeByResidencyType</span> <span class="n">AS</span>
+<span class="n">SELECT</span>  <span class="n">AcademicYear</span><span class="p">,</span>
+                <span class="n">InstitutionIdentifier</span><span class="p">,</span>
+                <span class="n">LEFT</span><span class="p">(</span><span class="n">ChargeByResidencyType</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="n">POSITION</span><span class="p">(</span><span class="s1">&#39;Year&#39;</span><span class="p">,</span><span class="n">ChargeByResidencyType</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">AS</span> <span class="n">ResidencyType</span><span class="p">,</span> <span class="o">--</span><span class="n">ChargeCategory</span>
+                <span class="n">RIGHT</span><span class="p">(</span><span class="n">ChargeByResidencyType</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span> <span class="o">--</span><span class="n">ResidencyType</span>
+                <span class="n">ChargeByResidencyType</span><span class="o">.</span><span class="n">VALUE</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span> <span class="n">Od_InstitutionalCharge</span><span class="p">,</span>
+          <span class="n">LATERAL</span> <span class="n">FLATTEN</span><span class="p">(</span><span class="n">INPUT</span> <span class="o">=&gt;</span> <span class="n">InstitutionalChargeByResidencyType</span><span class="p">)</span> <span class="n">ChargeByResidencyType</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="v-od-institutionalchargebycategory">
+<h3>v_od_InstitutionalChargeByCategory<a class="headerlink" href="#v-od-institutionalchargebycategory" title="Permalink to this headline">¶</a></h3>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">VIEW</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">v_od_InstitutionalChargeByCategory</span><span class="p">;</span>
+
+<span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">VIEW</span> <span class="n">v_od_InstitutionalChargeByCategory</span> <span class="n">AS</span>
+<span class="n">SELECT</span>  <span class="n">AcademicYear</span><span class="p">,</span>
+                <span class="n">InstitutionIdentifier</span><span class="p">,</span><span class="n">ChargeByCategory</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span>
+                <span class="n">LEFT</span><span class="p">(</span><span class="n">ChargeByCategory</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="n">POSITION</span><span class="p">(</span><span class="s1">&#39;Year&#39;</span><span class="p">,</span><span class="n">ChargeByCategory</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="n">AS</span> <span class="n">CategoryType</span><span class="p">,</span>
+                <span class="n">RIGHT</span><span class="p">(</span><span class="n">ChargeByCategory</span><span class="o">.</span><span class="n">Key</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span> <span class="n">AS</span> <span class="n">PublishedYear</span><span class="p">,</span>
+                <span class="n">ChargeByCategory</span><span class="o">.</span><span class="n">VALUE</span> <span class="n">AS</span> <span class="n">Amount</span>
+<span class="n">FROM</span> <span class="n">Od_InstitutionalCharge</span><span class="p">,</span>
+         <span class="n">LATERAL</span> <span class="n">FLATTEN</span><span class="p">(</span><span class="n">INPUT</span> <span class="o">=&gt;</span> <span class="n">InstitutionalChargeByCategory</span><span class="p">)</span> <span class="n">ChargeByCategory</span>
+</pre></div>
+</div>
+<p>The loading process to OD table and servicing layer entities will remain same as described in the earlier chapter.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<blockquote>
+<div><p>Code available to download  at <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/source/code/Chapter08/Approach02">chapter08_02</a>.</p>
+</div></blockquote>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pustaka</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Chap00_intro.html">Data Platform Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap01_DataSource.html">Data source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap02_DataLoadSoftware.html">Data Load Software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap03_SnowflakeStageArea.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap04_IngestingDataSnowflakeStage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap05_AttributeMapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">Json Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ORC ingestion - 2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ic-load-another-approach-using-json">IC load another approach - Using JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stored-procedure-for-od-table">Stored procedure for OD table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#views-from-the-od-table">Views from the OD table</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#v-od-institutionalchargebyacademicbranch">v_od_InstitutionalChargeByAcademicBranch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#v-od-institutionalchargebyresidencytype">v_od_InstitutionalChargeByResidencyType</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#v-od-institutionalchargebycategory">v_od_InstitutionalChargeByCategory</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Chap09_Admission%20Statistics.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap10_Lookup.html">Unstructured data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chap11_WorkflowMgmt.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="Chap08_InstitutionalCharges.html" title="previous chapter">ORC Ingestion</a></li>
+      <li>Next: <a href="Chap09_Admission%20Statistics.html" title="next chapter">Parquet Ingestion</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020 Versatile data platform.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
