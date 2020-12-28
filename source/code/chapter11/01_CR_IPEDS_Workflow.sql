@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS IPEDS_Workflow;
-CREATE TABLE IPEDS_Workflow
+CREATE OR REPLACE TABLE IPEDS_Workflow
 ( StageName STRING,
   ProcedureName STRING,
   SourceTableName STRING,
