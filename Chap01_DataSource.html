@@ -37,12 +37,12 @@
   <div class="section" id="project-data-source">
 <h1>Project Data Source<a class="headerlink" href="#project-data-source" title="Permalink to this headline">¶</a></h1>
 <p>Integrated Postsecondary Education Data System (IPEDS) - URL : <a class="reference external" href="https://nces.ed.gov/ipeds/">https://nces.ed.gov/ipeds/</a>
-is primary source for information on U.S. colleges, universities, and technical and vocational institutions.
+is the primary source for information on U.S. colleges, universities, and technical and vocational institutions.
 Most of the data used in this book is downloaded from - URL : <a class="reference external" href="https://nces.ed.gov/ipeds/use-the-data">https://nces.ed.gov/ipeds/use-the-data</a></p>
 <div class="figure align-center">
 <img alt="images/Chap01_01_IPEDSScreenShot.png" src="images/Chap01_01_IPEDSScreenShot.png" />
 </div>
-<p>Data is downloaded for three academic year (2017, 2018, and 2019).</p>
+<p>Data is downloaded for the three academic years (2017, 2018, and 2019).</p>
 <p>Disclaimer – We have modified this data to explain Snowflake functionality. The files used in this book are:</p>
 <div class="section" id="institutional-characteristics-files-hdr">
 <h2>Institutional Characteristics files [HDR]<a class="headerlink" href="#institutional-characteristics-files-hdr" title="Permalink to this headline">¶</a></h2>
@@ -63,13 +63,13 @@ for entering first-time, degree/certificate-seeking students.</p>
 </div>
 <div class="section" id="student-charges-for-academic-year-programs-ic-ay">
 <h2>Student charges for academic year programs [IC*AY]<a class="headerlink" href="#student-charges-for-academic-year-programs-ic-ay" title="Permalink to this headline">¶</a></h2>
-<p>This file contains data on student charges for a full academic year.  Price of attendance includes
+<p>This file contains data on student charges for a full academic year. The price of attendance includes
 amounts for published tuition and required fees, books and supplies, room and board and other expenses.</p>
 </div>
 <div class="section" id="code-mapping-data">
 <h2>Code Mapping Data<a class="headerlink" href="#code-mapping-data" title="Permalink to this headline">¶</a></h2>
-<p>List all the column codes and associated description
-(Example row – cngdstcd 3713=’NC, District 13’ can be interpreted as when table attribute
+<p>List all the column codes and the associated description
+(Example row – cngdstcd 3713=’NC, District 13’ can be interpreted as when the table attribute
 (column) cngdstcd content 3713, description NC, District 13)</p>
 </div>
 <div class="section" id="data-collection-notes">
@@ -77,19 +77,19 @@ amounts for published tuition and required fees, books and supplies, room and bo
 <blockquote>
 <div><ul class="simple">
 <li><p>Original text delimited data in</p></li>
-<li><p>EFFY file is converted to Jason format</p></li>
+<li><p>EFFY file is converted to JSON format</p></li>
 <li><p>ADM file is converted to Parquet format</p></li>
 <li><p>IC*AY file is converted to ORC format</p></li>
-<li><p>There is no change in HDR file format (CSV format)</p></li>
+<li><p>There is no change in the HDR file format (CSV format)</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Utilities used to convert original csv files into different data formats are available to download from URL: <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/utilities">https://github.com/versatiledp/Snowflake_dataplatform/tree/main/utilities</a></p>
+<p>Utilities used to convert the original CSV files into different data formats are available to download at URL: <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/utilities">https://github.com/versatiledp/Snowflake_dataplatform/tree/main/utilities</a></p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All the datafiles used throughout the books are available to download from URL: <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/data/input">https://github.com/versatiledp/Snowflake_dataplatform/tree/main/data/input</a></p>
+<p>All the datafiles used throughout the books are available to download at URL: <a class="reference external" href="https://github.com/versatiledp/Snowflake_dataplatform/tree/main/data/input">https://github.com/versatiledp/Snowflake_dataplatform/tree/main/data/input</a></p>
 </div>
 </div>
 </div>

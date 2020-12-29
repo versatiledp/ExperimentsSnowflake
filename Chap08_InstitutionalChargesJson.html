@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ORC Ingestion - 2 &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
+    <title>ORC Ingestion - Approach02 &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
     <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="static/my.css" type="text/css" />
@@ -34,15 +34,15 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="orc-ingestion-2">
-<h1>ORC Ingestion - 2<a class="headerlink" href="#orc-ingestion-2" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="orc-ingestion-approach02">
+<h1>ORC Ingestion - Approach02<a class="headerlink" href="#orc-ingestion-approach02" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="ic-load-another-approach-using-json">
 <h2>IC load another approach - Using JSON<a class="headerlink" href="#ic-load-another-approach-using-json" title="Permalink to this headline">¶</a></h2>
 <p>In this approach, we have restructured the OD table od_InstitutionalCharge by grouping various
 columns using the JSON data types. For example, all the columns associated with
 institutional charges by academic branches are grouped together as a single
-column InstitutionalChargeByAcademicBranch of VARIANT data type.
-Similar kind of grouping is done for institutional charges by residency and category columns also.
+column InstitutionalChargeByAcademicBranch using VARIANT data types.
+A similar kind of grouping is done for institutional charges by the residency and category columns also.
 The new structure of the staging table is as below.</p>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">od_InstitutionalCharge</span> <span class="p">(</span>
         <span class="n">InstitutionIdentifier</span> <span class="n">INTEGER</span><span class="p">,</span>
@@ -77,8 +77,8 @@ The new structure of the staging table is as below.</p>
 <div class="section" id="stored-procedure-for-od-table">
 <h2>Stored procedure for OD table<a class="headerlink" href="#stored-procedure-for-od-table" title="Permalink to this headline">¶</a></h2>
 <p>The stored procedure <strong>pr_od_InstitutionalCharge_Load</strong> for
-loading data into the staging table od_InstitutionalCharge has been modified to accommodate the structural change.
-Now we are using <strong>OBJECT_CONSTRUCT</strong> function to create JSON strings by combining various columns in the stored procedure.
+loading data into the staging table od_InstitutionalCharge has been modified to accommodate the structural changes.
+Now we are using the <strong>OBJECT_CONSTRUCT</strong> function to create JSON strings by combining various columns in the stored procedure.
 This JSON string is used to update the following VARIANT columns used in the staging table.
 The new VARIANT columns are :</p>
 <blockquote>
@@ -284,7 +284,7 @@ $$
 </div>
 <div class="section" id="views-from-the-od-table">
 <h2>Views from the OD table<a class="headerlink" href="#views-from-the-od-table" title="Permalink to this headline">¶</a></h2>
-<p>The following views are simplified compared to UNION structure using the Snowflake SQL command LATERAL FLATTEN.
+<p>The following views are simplified compared to the UNION structure using the Snowflake SQL command LATERAL FLATTEN.
 ●       v_od_InstitutionalChargeByAcademicBranch
 ●       v_od_InstitutionalChargeByResidencyType
 ●       v_od_InstitutionalChargeByCategory</p>
@@ -334,7 +334,8 @@ $$
          <span class="n">LATERAL</span> <span class="n">FLATTEN</span><span class="p">(</span><span class="n">INPUT</span> <span class="o">=&gt;</span> <span class="n">InstitutionalChargeByCategory</span><span class="p">)</span> <span class="n">ChargeByCategory</span>
 </pre></div>
 </div>
-<p>The loading process to OD table and servicing layer entities will remain same as described in the earlier chapter.</p>
+<p>The loading process to the OD table and servicing layer entities will remain the
+same as described in the earlier chapter.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <blockquote>
@@ -372,7 +373,7 @@ $$
 <li class="toctree-l1"><a class="reference internal" href="Chap06_AcademicInstitutionIngestion.html">CSV Ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Chap07_Enrollment.html">JSON Ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Chap08_InstitutionalCharges.html">ORC Ingestion</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">ORC Ingestion - 2</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ORC Ingestion - Approach02</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#ic-load-another-approach-using-json">IC load another approach - Using JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stored-procedure-for-od-table">Stored procedure for OD table</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#views-from-the-od-table">Views from the OD table</a><ul>
