@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Data Load Software &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/my.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script src="static/jquery.js"></script>
+    <script src="static/underscore.js"></script>
+    <script src="static/doctools.js"></script>
+    <script src="static/language_data.js"></script>
+    <script src="static/clipboard.min.js"></script>
+    <script src="static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Snowflake Staged Area" href="Snowflake_Staged_Area.html" />
+    <link rel="prev" title="Snowflake &amp; Data Platform Overview" href="snowflake_and_DP_overview.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="data-load-software">
+<h1>Data Load Software<a class="headerlink" href="#data-load-software" title="Permalink to this headline">¶</a></h1>
+<p>Snowflake data load can be achieved</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>SnowSQL - CLI allows bulk load data using SQL commands</p></li>
+<li><p>Snowpipe is utilized to automate large data set across multiple platforms</p></li>
+<li><p>Web interfaces are used to load small amounts of data</p></li>
+<li><p>Snowflake works with a wide range third parties like ETL/ELT Informatica, Talend, and Azure Data Factory</p></li>
+</ul>
+</div></blockquote>
+<div class="section" id="snowsql-ui">
+<h2>SnowSQL UI<a class="headerlink" href="#snowsql-ui" title="Permalink to this headline">¶</a></h2>
+<p>The Snowflake web interface provides a convenient wizard for
+loading limited amounts of data into a table from a small set of flat files.
+The Web UI allows us to simply select the table we want to load
+and by clicking the LOAD button we can easily load a limited amount of data into Snowflake.
+The wizard simplifies loading by combining the staging and data loading phases into a single
+operation and it also automatically deletes all the staged files after loading.</p>
+</div>
+<div class="section" id="snowsql-cli">
+<h2>SnowSQL CLI<a class="headerlink" href="#snowsql-cli" title="Permalink to this headline">¶</a></h2>
+<p>SnowSQL CLI is the command line client for Snowflake. It executes SQL queries
+and performs all DDL and DML operations. It is an easy way to access Snowflake from the command line.
+It has the same capabilities as the Snowflake UI.</p>
+<p>Login into Snowflake and click on help in the top right corner and download</p>
+<div class="figure align-center">
+<img alt="images/SnowflakeCLI.png" src="images/SnowflakeCLI.png" />
+</div>
+<p>We can also download SnowSQL CLI from the location URL :</p>
+<p><a class="reference external" href="https://Snowflakesolutions.net/snow-sql-cliclient/">https://Snowflakesolutions.net/snow-sql-cliclient/</a></p>
+<div class="figure align-center">
+<img alt="images/SnowflakeCLI_Source.png" src="images/SnowflakeCLI_Source.png" />
+</div>
+<p>SnowSQL CLI gets invoked with snowsql.exe</p>
+<p>SnowSQL Command Usage</p>
+<p>We can use the following command to connect to Snowflake using SnowSQL.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>snowsql -a accountName -u userName -d databaseName -s schemaName
+</pre></div>
+</div>
+<p>For example, consider the following command to connect Snowflake from Windows command line.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>snowsql -a xxxxxx.us-east-1 -u xxxxxx -d demo_db -s public
+Password:<span class="gs">*****</span>*
+</pre></div>
+</div>
+</div>
+<div class="section" id="snowpipe">
+<h2>Snowpipe<a class="headerlink" href="#snowpipe" title="Permalink to this headline">¶</a></h2>
+<p>Snowpipe is a mechanism to load high frequency or streaming data.
+Snowpipe provides the capability to load the data as soon as it becomes available in a
+defined stage. It can load a near real-time or micro-batch load of data. Snowpipe is a serverless architecture
+and does not use virtual warehouse resources. Snowpipe has its own resources, and those are managed by Snowflakes instances.</p>
+<p>Snowpipe makes REST API available to load data from</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Amazon Web Services (AWS) -Amazon S3</p></li>
+<li><p>Google Cloud Platform - Cloud Storage</p></li>
+<li><p>Microsoft Azure Blob Storage, Data Lake Storage Gen2</p></li>
+<li><p>Hadoop and Spark big data platform</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Go to:
+<a class="reference external" href="./Snowflake_Staged_Area.html">Next Chapter</a>
+<a class="reference external" href="./Data_Load_Software.html">Previous Chapter</a>
+<a class="reference external" href="./index.html">Table of Content</a></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Experiments with Snowflake</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="snowflake_and_DP_overview.html">Snowflake &amp; Data Platform Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Load Software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#snowsql-ui">SnowSQL UI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snowsql-cli">SnowSQL CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#snowpipe">Snowpipe</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Snowflake_Staged_Area.html">Snowflake Staged Area</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Project_Data_Source.html">Project Data Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Ingesting_Snowflake_Stage.html">Ingesting Snowflake Stage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Attribute_Mapping.html">Attribute Mapping</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Semi_structured_data_Load.html">Semi-structured data Load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline Orchestration</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="snowflake_and_DP_overview.html" title="previous chapter">Snowflake &amp; Data Platform Overview</a></li>
+      <li>Next: <a href="Snowflake_Staged_Area.html" title="next chapter">Snowflake Staged Area</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+ <script type="text/javascript">
+    $(document).ready(function() {
+        $(".toggle > *").hide();
+        $(".toggle .header").show();
+        $(".toggle .header").click(function() {
+            $(this).parent().children().not(".header").toggle(400);
+            $(this).parent().children(".header").toggleClass("open");
+        })
+    });
+</script>
+
+  </body>
+</html>
