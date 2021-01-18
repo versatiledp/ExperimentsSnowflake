@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Semi-structured data Load &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
+    <title>Semi-structured data Load &#8212; Snowflake 9/28/2020 documentation</title>
     <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="static/my.css" type="text/css" />
@@ -19,8 +19,8 @@
     <script src="static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Pipeline Orchestration" href="Pipeline_Orchestration.html" />
-    <link rel="prev" title="Parquet Ingestion" href="Parquet_Ingestion.html" />
+    <link rel="next" title="Pipeline orchestration" href="Pipeline_Orchestration.html" />
+    <link rel="prev" title="Parquet ingestion" href="Parquet_Ingestion.html" />
    
   <link rel="stylesheet" href="static/custom.css" type="text/css" />
   
@@ -78,12 +78,11 @@ Sample data from the source system is shown in the  below table.</p>
 <p>The first column helps to identify the target entity
 and the second column is actual data row for the target tables. Data for multiple columns is
 separated by an <strong>‘=’</strong> sign.</p>
-<p>In the above example</p>
-<p>The StateAbbrevation table should be loaded with two attributes. The attribute values for the first row are <strong>‘AL’</strong> and
+<p>In the above example, the StateAbbrevation table should be loaded with two attributes. The attribute values for the first row are <strong>‘AL’</strong> and
 <strong>‘Alabama’</strong>.
 Similarly AccountStatus should be loaded with the the values <strong>‘A’</strong> and <strong>‘Active - institution active’</strong></p>
 <p>Data is available for processing in the staged file <strong>&#64;IPEDS_CM</strong>.</p>
-<p>The following query are used to get rows from staged file</p>
+<p>The following query are used to get rows from staged file.</p>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT  t.$1 AS CodeName,
         t.$2  TableData
 FROM   @IPEDS_CM t
@@ -93,7 +92,7 @@ FROM   @IPEDS_CM t
 <p>The following script will create and load the CodeDestinationTable table.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide create CodeDestination entity and load data</strong></p>
+<p>Show/Hide Create CodeDestination entity and load data</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">TABLE</span> <span class="n">CodeDestinationTable</span>
 <span class="p">(</span>
@@ -107,7 +106,7 @@ FROM   @IPEDS_CM t
 <span class="n">SELECT</span> <span class="s1">&#39;c15basic&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2015&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
 <span class="n">SELECT</span> <span class="s1">&#39;c18basic&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2018&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
 <span class="n">SELECT</span> <span class="s1">&#39;c18ipug&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2000&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
-<span class="n">SELECT</span> <span class="s1">&#39;carnegie&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span> <span class="o">--</span> <span class="n">Same</span> <span class="n">name</span> <span class="k">as</span> <span class="n">above</span>
+<span class="n">SELECT</span> <span class="s1">&#39;carnegie&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
 <span class="n">SELECT</span> <span class="s1">&#39;cbsa&#39;</span><span class="p">,</span><span class="s1">&#39;CoreBasedStatisticalArea&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
 <span class="n">SELECT</span> <span class="s1">&#39;cbsatype&#39;</span><span class="p">,</span><span class="s1">&#39;CBSATypeMetropolitan&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
 <span class="n">SELECT</span> <span class="s1">&#39;ccbasic&#39;</span><span class="p">,</span><span class="s1">&#39;CarnegieClassification2005&#39;</span>  <span class="n">UNION</span> <span class="n">ALL</span>
@@ -151,18 +150,20 @@ FROM   @IPEDS_CM t
 </div>
 <p>The <strong>CodeDestination</strong> table is used to create the corresponding OD table, and
 service layer tables; furthermore, it is used for populating data dynamically from the staged file to the OD tables.</p>
-<p>We concatenated <strong>od_</strong> to the table name column from the CodeDestination entity. In the <strong>pr_od_CodeMapping_Load</strong> stored procedure
-we check if the corresponding table exist in the Snowflake. If the table is there, it is truncated and the staged file data for
-that code is loaded into the specific OD table. If the table is missing then, a new table is added. The newly added table is used
+<p>We concatenated ‘<strong>od_</strong>’ to the table name column from the CodeDestination entity.
+In the <strong>pr_od_CodeMapping_Load</strong> stored procedure,
+we check if the corresponding table exist in the Snowflake.
+If the table is there, it is truncated and the staged file data for
+that code is loaded into the specific OD table. If the table is missing, then a new table is added. The newly added table is used
 to load data.</p>
 <p>The combination of <strong>CodeDestinationTable</strong> table and <strong>&#64;IPEDS_CM</strong> staged file is used to populate mulitple operational data stores.
-Example when the code column content has value <strong>stabbr</strong> then destination table will be <strong>od_StateAbbreviation</strong>. The
+For example, when the code column content has value <strong>stabbr</strong> then destination table will be <strong>od_StateAbbreviation</strong>. The
 content of TableData column from <strong>&#64;IPEDS_CM</strong> where <strong>$1 = ‘StateAbbreviation’</strong>
 will be used to populate <strong>od_StateAbbreviation</strong>.</p>
 <p>The following script outlines this process.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide create OD CodeDestination load stored procedure</strong></p>
+<p>Show/Hide Create OD CodeDestination load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_od_CodeMapping_Load()
 RETURNS STRING
@@ -257,11 +258,11 @@ $$;
 <div class="section" id="merge-data">
 <h2>Merge data<a class="headerlink" href="#merge-data" title="Permalink to this headline">¶</a></h2>
 <p>Once data is loaded into the operational data zone, we use a similar approach to merge data to the final servicing layer entities.
-We check underlying entities dynamically, any missing entities are added. Data is merged from the OD to these entities using
+We check existance of these entities dynamically, and missing entities are added. Data is merged from the OD to these entities using
 <strong>pr_CodeMapping_Load</strong></p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide create CodeDestination load stored procedure</strong></p>
+<p>Show/Hide Create CodeDestination load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>DROP PROCEDURE IF EXISTS pr_CodeMapping_Load();
 
@@ -278,7 +279,6 @@ $$
         CmdTables = {sqlText: sql_GetTables};
         StmtTables = snowflake.createStatement(CmdTables);
         rsTables = StmtTables.execute();
-        //var strCommands = &#39;&#39;;
         var strTablePrefix = `od_`
         while (rsTables.next())  {
         var strStgTableName             = &quot; &quot;
@@ -294,7 +294,6 @@ $$
                         INSERT (Code,Description)
                         VALUES (s.Code,s.Description)
                         ;`
-                //strCommands = strCommands + sqlMergeSQL +&#39;--&gt;&#39;
                 try
                 {
                         snowflake.execute(
@@ -306,7 +305,7 @@ $$
                         return &quot;Failed :&quot; + err;
                 }
         }
-        return &quot;success&quot; //strCommands
+        return &quot;success&quot;
 $$;
 </pre></div>
 </div>
@@ -324,15 +323,22 @@ single file into the multiple entities with different set of attributes.
 With JavaScript based stored procedures, we can consume variety of data layout programmatically.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Code available to download at
+<p>Code available is to download at:
 <a class="reference external" href="https://github.com/versatiledp/ExperimentsSnowflake/tree/main/source/code/SQL/CodeMapping">ExperimentsSnowflake/tree/main/source/code/SQL/CodeMapping</a></p>
-<dl class="simple">
-<dt>Go to:</dt><dd><p><a class="reference external" href="./Pipeline_Orchestration.html">Next Chapter</a>
-<a class="reference external" href="./Parquet_Ingestion.html">Previous Chapter</a>
-<a class="reference external" href="./index.html">Table of Content</a></p>
-</dd>
-</dl>
 </div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference external" href="./index.html">Table of Contents</a></p></td>
+<td><p><a class="reference external" href="./Parquet_Ingestion.html">Previous Chapter</a></p></td>
+<td><p><a class="reference external" href="./Pipeline_Orchestration.html">Next Chapter</a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -343,7 +349,7 @@ With JavaScript based stored procedures, we can consume variety of data layout p
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Experiments with Snowflake</a></h1>
+<h1 class="logo"><a href="index.html">Snowflake</a></h1>
 
 
 
@@ -355,31 +361,29 @@ With JavaScript based stored procedures, we can consume variety of data layout p
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="snowflake_and_DP_overview.html">Snowflake &amp; Data Platform Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data_Load_Software.html">Data Load Software</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Snowflake_Staged_Area.html">Snowflake Staged Area</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Project_Data_Source.html">Project Data Source</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Ingesting_Snowflake_Stage.html">Ingesting Snowflake Stage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Attribute_Mapping.html">Attribute Mapping</a></li>
-<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingSnowflake.html">Introducing Snowflake</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingDataplatform.html">Introducing data platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet ingestion</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Semi-structured data Load</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#lookup-entities">Lookup entities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#merge-data">Merge data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Business_Insights.html">Business insights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Summary.html">Summary</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="Parquet_Ingestion.html" title="previous chapter">Parquet Ingestion</a></li>
-      <li>Next: <a href="Pipeline_Orchestration.html" title="next chapter">Pipeline Orchestration</a></li>
+      <li>Previous: <a href="Parquet_Ingestion.html" title="previous chapter">Parquet ingestion</a></li>
+      <li>Next: <a href="Pipeline_Orchestration.html" title="next chapter">Pipeline orchestration</a></li>
   </ul></li>
 </ul>
 </div>

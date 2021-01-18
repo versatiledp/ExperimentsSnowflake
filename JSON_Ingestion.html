@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JSON Ingestion &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
+    <title>JSON ingestion &#8212; Snowflake 9/28/2020 documentation</title>
     <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="static/my.css" type="text/css" />
@@ -19,8 +19,8 @@
     <script src="static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="ORC Ingestion" href="ORC_Ingestion.html" />
-    <link rel="prev" title="CSV Ingestion" href="CSV_Ingestion.html" />
+    <link rel="next" title="ORC ingestion" href="ORC_Ingestion.html" />
+    <link rel="prev" title="CSV ingestion" href="CSV_Ingestion.html" />
    
   <link rel="stylesheet" href="static/custom.css" type="text/css" />
   
@@ -38,24 +38,23 @@
           <div class="body" role="main">
             
   <div class="section" id="json-ingestion">
-<h1>JSON Ingestion<a class="headerlink" href="#json-ingestion" title="Permalink to this headline">¶</a></h1>
+<h1>JSON ingestion<a class="headerlink" href="#json-ingestion" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="enrollment">
 <h2>Enrollment<a class="headerlink" href="#enrollment" title="Permalink to this headline">¶</a></h2>
 <p>This section covers the information about enrollments in various institutions for the years 2017, 2018 and 2019.
 The enrollments are categorized by race, ethnicity and sex.
 The data files for enrollments are in the JSON format and the staged file is invoked using &#64;IPEDS_EFFY.</p>
-<p>We will learn about</p>
+<p>We will learn about:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>JSON ingestion</p></li>
 <li><p>Transforming data using the Snowflake JavaScripts stored procedures</p></li>
 <li><p>Calling stored procedures</p></li>
-<li></li>
 </ul>
 </div></blockquote>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Select from Staged file JSON data script</strong></p>
+<p>Show/Hide Select from Staged file JSON data script</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>SELECT
  S.$1:EFFYLEV::INTEGER  AS LevelOfStudent
@@ -128,12 +127,12 @@ WHERE RIGHT(REPLACE(S.metadata$filename,&#39;_rv.json.gz&#39;,&#39;&#39;),4) = 2
 </div>
 </div>
 <div class="section" id="operational-data-od-table-for-enrollment">
-<h2>Operational data (OD) table for Enrollment<a class="headerlink" href="#operational-data-od-table-for-enrollment" title="Permalink to this headline">¶</a></h2>
+<h2>Operational data (OD) table for enrollment<a class="headerlink" href="#operational-data-od-table-for-enrollment" title="Permalink to this headline">¶</a></h2>
 <p>For storing the enrollments from the staged file, we have added a operational table called <strong>od_Enrollment</strong>.
-Here is the CREATE command for the staging table.</p>
+Here is the CREATE command for the OD table.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create OD Enrollment entity</strong></p>
+<p>Show/Hide Create OD Enrollment entity</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">TABLE</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">od_Enrollment</span><span class="p">;</span>
 
@@ -209,13 +208,13 @@ Here is the CREATE command for the staging table.</p>
 </div>
 </div>
 <p>Once the operational data table is created,
-we will be populating the staging table with data from the source system, coming in the JSON file.
+we will be populating the OD table with data from the source system, coming in the JSON file.
 We are using the stored procedures based ELT based approach for loading the OD tables.
-The stored procedure <strong>pr_od_Enrollment_Load</strong> used a parameter YEAR.
+The stored procedure <strong>pr_od_Enrollment_Load</strong> has input parameter called YEAR.
 Here is the Snowflake script for creating the stored procedure <strong>pr_od_Enrollment_Load</strong>.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create OD Enrollment entity load stored procedure</strong></p>
+<p>Show/Hide Create OD Enrollment entity load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
 pr_od_Enrollment_Load(YEAR FLOAT)
@@ -403,7 +402,7 @@ $$;
 Here is the script for creating the table Enrollment.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create Enrollment entity</strong></p>
+<p>Show/Hide Create Enrollment entity</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CREATE</span> <span class="n">OR</span> <span class="n">REPLACE</span> <span class="n">TABLE</span> <span class="n">Enrollment</span> <span class="p">(</span>
   <span class="n">AcademicInstitutionUniqueDWSID</span> <span class="n">INTEGER</span><span class="p">,</span>
@@ -463,19 +462,19 @@ Here is the script for creating the table Enrollment.</p>
 this servicing layer table. The stored procedure loads data for specific years based on the parameter passed in to it.
 Each time this stored procedure is called, it deletes the records from the Enrollment table
 for that year and re-inserts them from od_Enrollment for the year.</p>
-<p>While loading data into the servicing layer load ,data transformation is added.
+<p>Transformation is performed during service layer data load process.
 The imputation variable determines whether the value in the numeric field
 is imputed or reported. We are interested to understand the total number of imputed variable counts,
 and reported variable counts.
 Those values are stored in
 <strong>VariablesReportedCount</strong> and  <strong>VariablesImputedCount</strong>. Based on the values of  VariablesReportedCount
 and VariablesImputedCount, the percentage of imputed or reported
-is calculated. Those percentages are stored in <strong>ImputationVarPercent</strong>, and <strong>ReportedVarPercent</strong></p>
+is calculated. Those percentages are stored in <strong>ImputationVarPercent</strong>, and <strong>ReportedVarPercent</strong>.</p>
 <p>Here is the script for stored procedure <strong>pr_Enrollment_Load</strong>.
-The additional data transformation needed to get the above variables, are computed in the same SP.</p>
+The additional data transformation needed to get the above variables are computed in the same stored procedure.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create Enrollment entity load stored procedure</strong></p>
+<p>Show/Hide Create Enrollment entity load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE
         OR REPLACE PROCEDURE pr_Enrollment_Load (YEAR FLOAT)
@@ -781,7 +780,7 @@ RETURN &quot;success&quot; $$;
 </div>
 </div>
 <p>The above SP is called to process data for 2017,2018, and 2019.
-The code below shows the call to the 06_CR_Enrollment_Load for loading all historical files.</p>
+The code below shows the call to the EnrollmentLoad stored procedure for loading all historical files.</p>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRUNCATE</span> <span class="n">TABLE</span> <span class="n">Enrollment</span><span class="p">;</span>
 <span class="n">CALL</span> <span class="n">pr_Enrollment_Load</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
 <span class="n">CALL</span> <span class="n">pr_Enrollment_Load</span><span class="p">(</span><span class="mi">2018</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
@@ -793,18 +792,25 @@ The code below shows the call to the 06_CR_Enrollment_Load for loading all histo
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>In this chapter we have discussed the enrollments in various institutions by year.
 We talked about creating a OD table from data files which are in a JSON format.
-We also discussed the servicing layer table and the (ETL code) stored procedure to load the servicing layer from the staging table.</p>
+We also discussed the servicing layer table and the (ETL code) stored procedure to load the servicing layer from the OD table.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Code available to download at
+<p>Code is available to download at:
 <a class="reference external" href="https://github.com/versatiledp/ExperimentsSnowflake/tree/main/source/code/SQL/Enrollment">ExperimentsSnowflake/tree/main/source/code/SQL/Enrollment</a></p>
-<dl class="simple">
-<dt>Go to:</dt><dd><p><a class="reference external" href="./ORC_Ingestion.html">Next Chapter</a>
-<a class="reference external" href="./CSV_Ingestion.html">Previous Chapter</a>
-<a class="reference external" href="./index.html">Table of Content</a></p>
-</dd>
-</dl>
 </div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference external" href="./index.html">Table of Contents</a></p></td>
+<td><p><a class="reference external" href="./CSV_Ingestion.html">Previous Chapter</a></p></td>
+<td><p><a class="reference external" href="./ORC_Ingestion.html">Next Chapter</a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -815,7 +821,7 @@ We also discussed the servicing layer table and the (ETL code) stored procedure 
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Experiments with Snowflake</a></h1>
+<h1 class="logo"><a href="index.html">Snowflake</a></h1>
 
 
 
@@ -827,32 +833,30 @@ We also discussed the servicing layer table and the (ETL code) stored procedure 
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="snowflake_and_DP_overview.html">Snowflake &amp; Data Platform Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data_Load_Software.html">Data Load Software</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Snowflake_Staged_Area.html">Snowflake Staged Area</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Project_Data_Source.html">Project Data Source</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Ingesting_Snowflake_Stage.html">Ingesting Snowflake Stage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Attribute_Mapping.html">Attribute Mapping</a></li>
-<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV Ingestion</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">JSON Ingestion</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingSnowflake.html">Introducing Snowflake</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingDataplatform.html">Introducing data platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV ingestion</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">JSON ingestion</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#enrollment">Enrollment</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#operational-data-od-table-for-enrollment">Operational data (OD) table for Enrollment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#operational-data-od-table-for-enrollment">Operational data (OD) table for enrollment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#enrollment-load">Enrollment load</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Semi_structured_data_Load.html">Semi-structured data Load</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Business_Insights.html">Business insights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Summary.html">Summary</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="CSV_Ingestion.html" title="previous chapter">CSV Ingestion</a></li>
-      <li>Next: <a href="ORC_Ingestion.html" title="next chapter">ORC Ingestion</a></li>
+      <li>Previous: <a href="CSV_Ingestion.html" title="previous chapter">CSV ingestion</a></li>
+      <li>Next: <a href="ORC_Ingestion.html" title="next chapter">ORC ingestion</a></li>
   </ul></li>
 </ul>
 </div>

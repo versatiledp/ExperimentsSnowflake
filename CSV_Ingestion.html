@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CSV Ingestion &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
+    <title>CSV ingestion &#8212; Snowflake 9/28/2020 documentation</title>
     <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="static/my.css" type="text/css" />
@@ -19,8 +19,8 @@
     <script src="static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="JSON Ingestion" href="JSON_Ingestion.html" />
-    <link rel="prev" title="Attribute Mapping" href="Attribute_Mapping.html" />
+    <link rel="next" title="JSON ingestion" href="JSON_Ingestion.html" />
+    <link rel="prev" title="Introducing data platform" href="IntroducingDataplatform.html" />
    
   <link rel="stylesheet" href="static/custom.css" type="text/css" />
   
@@ -38,9 +38,9 @@
           <div class="body" role="main">
             
   <div class="section" id="csv-ingestion">
-<h1>CSV Ingestion<a class="headerlink" href="#csv-ingestion" title="Permalink to this headline">¶</a></h1>
+<h1>CSV ingestion<a class="headerlink" href="#csv-ingestion" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="academic-institution">
-<h2>Academic Institution<a class="headerlink" href="#academic-institution" title="Permalink to this headline">¶</a></h2>
+<h2>Academic institution<a class="headerlink" href="#academic-institution" title="Permalink to this headline">¶</a></h2>
 <p>The academic institution file contains the high level information about institutions in the country by year.
 The following files contain the information about the institution for the year 2017, 2018 and 2019 respectively.</p>
 <blockquote>
@@ -50,17 +50,17 @@ The following files contain the information about the institution for the year 2
 <li><p>HD2019.csv</p></li>
 </ul>
 </div></blockquote>
-<p>We will learn how to</p>
+<p>We will learn how to:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Use ingested CSV files from the staged Snowflake region</p></li>
-<li><p>Transform data using Snowflake JavaScript stored procedure</p></li>
-<li><p>Call stored procedure</p></li>
-<li><p>Build views in Snowflake</p></li>
-<li><p>Manage schema drifts from one file to another file</p></li>
-<li><p>Build processes so schema drift does not create impdiments with old historical data</p></li>
-<li><p>Combine column attributes  to JSON objects as part of transformation</p></li>
-<li><p>Perform SQL MERGE using hash key</p></li>
+<li><p>Use ingested CSV files from the staged Snowflake region.</p></li>
+<li><p>Transform data using Snowflake JavaScript stored procedure.</p></li>
+<li><p>Call stored procedure.</p></li>
+<li><p>Build views in Snowflake.</p></li>
+<li><p>Manage schema drifts from one file to another file.</p></li>
+<li><p>Build processes so schema drift does not create impdiments with old historical data.</p></li>
+<li><p>Combine column attributes  to JSON objects as part of transformation.</p></li>
+<li><p>Perform SQL MERGE using hash key.</p></li>
 </ul>
 </div></blockquote>
 <p>In staged files, data can be located in an internal stage (in a Snowflake database)
@@ -77,35 +77,35 @@ The above command returns the first and second column values of the Institution 
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>SELECT $1,$2,$3,$4,$5,$6,$7,…….,$71,$72 FROM @IPEDS_HD;
 </pre></div>
 </div>
-<div class="figure align-center">
-<img alt="images/IPEDTableData.jpg" src="images/IPEDTableData.jpg" />
+<div class="figure align-default">
+<a class="reference internal image-reference" href="images/IPEDTableData.jpg"><img alt="images/IPEDTableData.jpg" src="images/IPEDTableData.jpg" style="width: 2468.0px; height: 818.0px;" /></a>
 </div>
 <p>To ignore header records from loading into the data table, we can skip the header information row in staged file.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>SELECT $1,$2,$3,$4,$5,$6,$7,…….,$71,$72
 FROM @IPEDS_HD WHERE metadata$file_row_number &gt; 1;
 </pre></div>
 </div>
-<div class="figure align-center">
-<img alt="images/IPEDTableData_AA.jpg" src="images/IPEDTableData_AA.jpg" />
+<div class="figure align-default">
+<a class="reference internal image-reference" href="images/IPEDTableData_AA.jpg"><img alt="images/IPEDTableData_AA.jpg" src="images/IPEDTableData_AA.jpg" style="width: 2729.0px; height: 733.0px;" /></a>
 </div>
 <p>The attributes from the the staged file do not hold column name and column types. We need to provide schema on read
 for each of the $1, $2,,, $n columns in the staged file &#64;IPEDS_HD. This is accompolished using mapping documents
 between staged layer and column names in OD tables.</p>
 </div>
 <div class="section" id="od-table-for-academic-institution">
-<h2>OD table for Academic Institution<a class="headerlink" href="#od-table-for-academic-institution" title="Permalink to this headline">¶</a></h2>
+<h2>OD table for academic institution<a class="headerlink" href="#od-table-for-academic-institution" title="Permalink to this headline">¶</a></h2>
 <p>Operational data  (OD) tables are physical tables and populated from the corresponding staged files.
 ELT process will copy data from Staged files with
 very little transformation and no metadata to  OD tables  and descriptive column names. We can add more columns to
 the OD table if necessary. We have added  3 additional columns like AcademicYear,
-IngestedFileName, and RowNumber to the OD table for using them in the ETL/ELT process and audit purposes.</p>
+IngestedFileName, and RowNumber to the OD table for using them in the ETL/ELT process and audit purpose.</p>
 <p>Once the column mapping is clearly defined, we have to populate our
 operational data  table for academic institutions called <strong>od_AcademicInstitution</strong>
 out of this staged file <strong>&#64;IPEDS_HD</strong>.</p>
 <p>Here is the SQL command to create an OD table <strong>od_AcademicInstitution</strong>.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create OD AcademicInstitution Entity</strong></p>
+<p>Show/Hide Create OD AcademicInstitution Entity</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">TABLE</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">od_AcademicInstitution</span><span class="p">;</span>
 
@@ -189,8 +189,8 @@ out of this staged file <strong>&#64;IPEDS_HD</strong>.</p>
 </pre></div>
 </div>
 </div>
-<p>The additional columns, AcademicYear, IngestedFileName, and RowNumber
-are basically derived from the metadata of the staged file.</p>
+<p>The additional columns like AcademicYear, IngestedFileName, and RowNumber
+are basically derived from  metadata of the staged file.</p>
 <p>We used the metadata columns <strong>METADATA$FILENAME</strong>, and <strong>METADATA$FILE_ROW_NUMBER</strong> for populating the new columns.</p>
 <p>Please note that, for the files having header rows, column names will be in ROW_NUMBER 1
 and data rows start from the second row.</p>
@@ -224,7 +224,7 @@ are also defined in the view.</p>
 <p>Here is the Snowflake command to create the view.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create OD AcademicInstitution View</strong></p>
+<p>Show/Hide Create OD AcademicInstitution View</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>DROP VIEW IF EXISTS v_od_AcademicInstitution;
 
@@ -321,8 +321,8 @@ given academic year using the view v_od_AcademicInstitution  as below. As we ing
 WHERE AcademicYear = 2017;
 </pre></div>
 </div>
-<p>It is also possible for ETL process to ingest data for one year, process.
-Drop the ingested file from the staged area and process the next.</p>
+<p>ETL process can ingest data for one year at a time and process it. It can drop
+the ingested file from the staged area and process the next year data.</p>
 </div>
 <div class="section" id="stored-procedure-for-od-table-load">
 <h2>Stored procedure for OD table load<a class="headerlink" href="#stored-procedure-for-od-table-load" title="Permalink to this headline">¶</a></h2>
@@ -340,7 +340,7 @@ The retrieved records are then inserted into the OD table.</p>
 <p>Here is the script for creating the Snowflake stored procedure pr_od_AcademicInstitution_Load.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create OD AcademicInstitution load stored procedure</strong></p>
+<p>Show/Hide Create OD AcademicInstitution load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
         pr_od_AcademicInstitution_Load (YEAR FLOAT)
@@ -531,13 +531,13 @@ CALL pr_od_AcademicInstitution_Load(2017::FLOAT);
 </pre></div>
 </div>
 <p>Here is the sample data retrieved using the SQL given above.</p>
-<div class="figure align-center">
-<img alt="images/academicInstitute.jpg" src="images/academicInstitute.jpg" />
+<div class="figure align-default">
+<a class="reference internal image-reference" href="images/academicInstitute.jpg"><img alt="images/academicInstitute.jpg" src="images/academicInstitute.jpg" style="width: 1747.0px; height: 584.0px;" /></a>
 </div>
 </div>
 <div class="section" id="academic-institution-data-processing">
-<h2>Academic Institution data processing<a class="headerlink" href="#academic-institution-data-processing" title="Permalink to this headline">¶</a></h2>
-<p>Using the Academic Institution files, we have built a dimension table called <strong>AcademicInstitution</strong>.
+<h2>Academic institution data processing<a class="headerlink" href="#academic-institution-data-processing" title="Permalink to this headline">¶</a></h2>
+<p>Using the academic institution files, we have built a dimension table called <strong>AcademicInstitution</strong>.
 This dimension table will be used by fact tables at the servicing layer in forthcoming chapters.</p>
 <p>In general, a dimension table contains keys columns and other attributes which are associated with the business key.
 A system-generated key (primary key) is used to uniquely identify a row in the dimension.
@@ -555,7 +555,7 @@ The automatic sequencing is achieved in Snowflake by defining <strong>SEQUENCE</
 <p>Following Snowflake SQL script is used for creating the AcademicInstitution dimension.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create AcademicInstitution entity</strong></p>
+<p>Show/Hide Create AcademicInstitution entity</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DROP</span> <span class="n">TABLE</span> <span class="n">IF</span> <span class="n">EXISTS</span> <span class="n">AcademicInstitution</span><span class="p">;</span>
 
@@ -634,7 +634,7 @@ These columns are used to store JSON data in the table.
 The DATETIME columns RecordCreateDateTime and RecordUpdateDateTime are added for auditing data Upserts.</p>
 </div>
 <div class="section" id="carnegie-classification-transformation">
-<h3>Carnegie Classification transformation<a class="headerlink" href="#carnegie-classification-transformation" title="Permalink to this headline">¶</a></h3>
+<h3>Carnegie classification transformation<a class="headerlink" href="#carnegie-classification-transformation" title="Permalink to this headline">¶</a></h3>
 <p>We have grouped together certain columns from the OD table.
 The following columns belong to CarnegieClassification and are stored in the dimension table in JSON format.
 Hence, the column CarnegieClassification is created with the VARIANT data type.</p>
@@ -652,7 +652,7 @@ Hence, the column CarnegieClassification is created with the VARIANT data type.<
 </div></blockquote>
 </div>
 <div class="section" id="web-address-transformation">
-<h3>Web Address transformation<a class="headerlink" href="#web-address-transformation" title="Permalink to this headline">¶</a></h3>
+<h3>Web address transformation<a class="headerlink" href="#web-address-transformation" title="Permalink to this headline">¶</a></h3>
 <p>Similarly, we have grouped together below columns holding various web addresses
 under the name WebAddress and stored in a JSON format. Thus another VARIANT data type column WebAddress is also created.</p>
 <blockquote>
@@ -670,31 +670,31 @@ under the name WebAddress and stored in a JSON format. Thus another VARIANT data
 </div>
 </div>
 <div class="section" id="load-dimension-table">
-<h2>Load Dimension table<a class="headerlink" href="#load-dimension-table" title="Permalink to this headline">¶</a></h2>
+<h2>Load dimension table<a class="headerlink" href="#load-dimension-table" title="Permalink to this headline">¶</a></h2>
 <p>Once the dimension table is created, we need to load the dimension table <strong>AcademicInstitution</strong>
 with data from the operational data table <strong>od_AcademicInstitution</strong>.
 This is made possible by using the Snowflake MERGE command.</p>
 <p>The MERGE command uses source and target tables for the merge operation.
 In our case, the OD table <strong>od_AcademicInstitution</strong> is the source
 table and the dimension table <strong>AcademicInstitution</strong> is the target table.
-The business key is required for MERGE and for dimension <strong>AcademicInstitution</strong> ‘
+The business key is required for MERGE and for dimension <strong>AcademicInstitution</strong>,
 business key is <strong>InstitutionIdentifier</strong>.</p>
-<p>In Snowflake MERGE works similar to standard SQL MERGE.
+<p>In Snowflake, MERGE works similar to standard SQL MERGE.
 We join the source and target using the business key.
 Then we compare the new data in the OD table against the existing column values in the dimension table.
-If any of the column values are updated in the staging table, that value is updated in the dimension table.
-If the business key <strong>InstitutionIdentifier</strong> is not present in the dimension table (new records in the staging table),
+If any of the column values are updated in the OD table, that value is updated in the dimension table.
+If the business key <strong>InstitutionIdentifier</strong> is not present in the dimension table (new records in the OD table),
 that record is inserted into the dimension table.</p>
-<p><strong>We are using the slowly changing Type 1 concepts from datawarehouse load for merging AcademicInstitution.</strong></p>
-<div class="figure align-center">
-<img alt="images/merge.png" src="images/merge.png" />
+<p>We are using the slowly changing Type 1 concepts from datawarehouse load for merging AcademicInstitution.</p>
+<div class="figure align-default">
+<a class="reference internal image-reference" href="images/merge.png"><img alt="images/merge.png" src="images/merge.png" style="width: 960.0px; height: 540.0px;" /></a>
 </div>
 <p>We have created a stored procedure <strong>pr_AcademicInstitution_Load</strong> for merging data from the staging
 table <strong>od_AcademicInstitution</strong> to the dimension table <strong>AcademicInstitution</strong>.
 The script to create the stored procedure is given below.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create AcademicInstitution load stored procedure</strong></p>
+<p>Show/Hide Create AcademicInstitution load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
         pr_AcademicInstitution_Load(YEAR FLOAT)
@@ -1155,15 +1155,15 @@ try {
 SELECT * FROM AcademicInstitution
 </pre></div>
 </div>
-<p>The following diagram shows all the data being processed and AcademicInstitution has The data as desired</p>
-<div class="figure align-center">
-<img alt="images/IPEDTableData_BB.JPG" src="images/IPEDTableData_BB.JPG" />
+<p>The following diagram shows all the data being processed and AcademicInstitution has The data as desired.</p>
+<div class="figure align-default">
+<a class="reference internal image-reference" href="images/IPEDTableData_BB.JPG"><img alt="images/IPEDTableData_BB.JPG" src="images/IPEDTableData_BB.JPG" style="width: 2817.0px; height: 1049.0px;" /></a>
 </div>
 </div>
 <div class="section" id="schema-drift">
 <h2>Schema drift<a class="headerlink" href="#schema-drift" title="Permalink to this headline">¶</a></h2>
 <p>Structural changes in the incoming data files are very common in a data warehouse environment.
-In our case from 2018, we have noticed the following structural
+In our case, from 2018 we have noticed the following structural
 changes in the input files generated from source system.</p>
 <p>The following new columns are added to files from 2018 onwards.</p>
 <blockquote>
@@ -1205,29 +1205,31 @@ This has made it possible to ingest files with different structures for 2017, an
 Newly added columns are mapped with NULL for the year 2017.</p>
 <p>We have to modify the following Snowflake data objects to incorporate the above structural
 change along with table change in the tables <strong>od_AcademicInstitution</strong> and <strong>AcademicInstitution</strong> .</p>
-<ol class="arabic simple">
+<blockquote>
+<div><ul class="simple">
 <li><p>View : v_od_AcademicInstitution</p></li>
 <li><p>Stored procedure for loading staging table : pr_od_AcademicInstitution_Load</p></li>
 <li><p>Stored procedure for processing dimension table : pr_AcademicInstitution_Load</p></li>
-</ol>
+</ul>
+</div></blockquote>
 <p><strong>Modifying the view from the staged file</strong></p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Alter OD AcademicInstitution view</strong></p>
+<p>Show/Hide Alter OD AcademicInstitution view</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>DROP VIEW IF EXISTS v_od_AcademicInstitution;
 
 CREATE OR REPLACE VIEW v_od_AcademicInstitution  AS
 SELECT
-  t.$1 AS InstitutionIdentifier,
-  t.$2 AS InstitutionName,
-  t.$3 AS InstitutionNameAlias,
-  t.$4 AS StreetAddress,
-  t.$5 AS City,
-  t.$6 AS State,
-  t.$7 AS ZipCode,
-  t.$8 AS StateCode,
-  t.$9 AS EconomicAnalysisRegions,
+  t.$1  AS InstitutionIdentifier,
+  t.$2  AS InstitutionName,
+  t.$3  AS InstitutionNameAlias,
+  t.$4  AS StreetAddress,
+  t.$5  AS City,
+  t.$6  AS State,
+  t.$7  AS ZipCode,
+  t.$8  AS StateCode,
+  t.$9  AS EconomicAnalysisRegions,
   t.$10 AS ChiefAdministrator,
   t.$11 AS ChiefAdministratorTitle,
   t.$12 AS TelephoneNumber,
@@ -1273,12 +1275,12 @@ SELECT
   t.$52 AS CarnegieClassification2015UndergraduateProfile,
   t.$53 AS CarnegieClassification2015EnrollmentProfile,
   t.$54 AS CarnegieClassification2015SizeSetting,
-  NULL AS CarnegieClassification2018Basic,
-  NULL AS CarnegieClassification2018UndergraduateProgram,
-  NULL AS CarnegieClassification2018GraduateProgram,
-  NULL AS CarnegieClassification2018UndergraduateProfile,
-  NULL AS CarnegieClassification2018EnrollmentProfile,
-  NULL AS CarnegieClassification2018SizeSetting,
+  NULL  AS CarnegieClassification2018Basic,
+  NULL  AS CarnegieClassification2018UndergraduateProgram,
+  NULL  AS CarnegieClassification2018GraduateProgram,
+  NULL  AS CarnegieClassification2018UndergraduateProfile,
+  NULL  AS CarnegieClassification2018EnrollmentProfile,
+  NULL  AS CarnegieClassification2018SizeSetting,
   t.$55 AS CarnegieClassification20052010Basic,
   t.$56 AS CarnegieClassification2000,
   t.$57 AS LandGrantInstitution,
@@ -1306,15 +1308,15 @@ WHERE
   AND CAST(substring(metadata$filename, 3, 4) AS INTEGER) &lt; 2018
 UNION ALL
 SELECT
-  t.$1 AS InstitutionIdentifier,
-  t.$2 AS InstitutionName,
-  t.$3 AS InstitutionNameAlias,
-  t.$4 AS StreetAddress,
-  t.$5 AS City,
-  t.$6 AS State,
-  t.$7 AS ZipCode,
-  t.$8 AS StateCode,
-  t.$9 AS EconomicAnalysisRegions,
+  t.$1  AS InstitutionIdentifier,
+  t.$2  AS InstitutionName,
+  t.$3  AS InstitutionNameAlias,
+  t.$4  AS StreetAddress,
+  t.$5  AS City,
+  t.$6  AS State,
+  t.$7  AS ZipCode,
+  t.$8  AS StateCode,
+  t.$9  AS EconomicAnalysisRegions,
   t.$10 AS ChiefAdministrator,
   t.$11 AS ChiefAdministratorTitle,
   t.$12 AS TelephoneNumber,
@@ -1355,11 +1357,11 @@ SELECT
   t.$47 AS ReportingMethodForStudentCharges,
   t.$48 AS InstitutionalCategory,
   t.$55 AS CarnegieClassification2015Basic,
-  NULL AS CarnegieClassification2015UndergraduateProgram,
-  NULL AS CarnegieClassification2015GraduateProgram,
-  NULL AS CarnegieClassification2015UndergraduateProfile,
-  NULL CarnegieClassification2015EnrollmentProfile,
-  NULL CarnegieClassification2015SizeSetting,
+  NULL  AS CarnegieClassification2015UndergraduateProgram,
+  NULL  AS CarnegieClassification2015GraduateProgram,
+  NULL  AS CarnegieClassification2015UndergraduateProfile,
+  NULL  AS CarnegieClassification2015EnrollmentProfile,
+  NULL  AS CarnegieClassification2015SizeSetting,
   t.$49 AS CarnegieClassification2018Basic,
   t.$50 AS CarnegieClassification2018UndergraduateProgram,
   t.$51 AS CarnegieClassification2018GraduateProgram,
@@ -1400,7 +1402,7 @@ WHERE
 <p>Modifying pr_od_AcademicInstitution_Load to accommodate the structural changes in the files 2018 and onwards.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Alter OD AcademicInstitution load stored procedure</strong></p>
+<p>Show/Hide Alter OD AcademicInstitution load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_od_AcademicInstitution_Load(YEAR FLOAT)
 RETURNS STRING
@@ -1610,7 +1612,7 @@ CALL pr_od_AcademicInstitution_Load(2019::FLOAT);
 <p>The stored procedure pr_AcademicInstitution_Load is modified to accommodate the new columns added.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Alter AcademicInstitution load stored procedure</strong></p>
+<p>Show/Hide Alter AcademicInstitution load stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
                 pr_AcademicInstitution_Load(YEAR FLOAT)
@@ -2133,7 +2135,7 @@ This concatenated string is passed to the hash function SHA1 to generate the has
 Function Concat_Columns is created as below.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create function to concat AcademicInstitution column</strong></p>
+<p>Show/Hide Create function to concat AcademicInstitution column</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE FUNCTION
     ConcatColumns(COLUMNLIST array)
@@ -2160,7 +2162,7 @@ Function Concat_Columns is created as below.</p>
 <p>Here are the scripts for creating the function Hash_Key.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create function to Hash data</strong></p>
+<p>Show/Hide Create function to Hash data</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE FUNCTION
     Hash_Key(SCDKeys array)
@@ -2179,7 +2181,7 @@ If there is a change, the corresponding target record is updated with the source
 <p>The modified stored procedure is given below.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Create AcademicInstitutionMergeHashByte load procedure</strong></p>
+<p>Show/Hide Create AcademicInstitutionMergeHashByte load procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE
                 pr_AcademicInstitutionMergeHashByte_Load(YEAR FLOAT)
@@ -2679,22 +2681,29 @@ try {
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>In this chapter we have travelled through the process involved in loading and processing academic institution files
 for the years 2017, 2018, and 2019. We created a staged file and a corresponding operational data table to store
-institution details by year.We discussed in detail about the views and stored procedures used to populate
+institution details by year. We discussed in detail about the views and stored procedures used to populate
 the dimension table using the Snowflake MERGE command. We also demonstrated how to group various
-columns in the staged file using JSON string and VARIANT data types. Furthermore, we discussed the
+columns in the staged file using JSON string and VARIANT data types. Furthermore, we learned the
 transformation logic to handle the schema drifts in the incoming data files.
 Finally, we demonstrated yet another approach to MERGE dimension table using hash keys.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Code available to download at
+<p><strong>Code is available to download at:</strong>
 <a class="reference external" href="https://github.com/versatiledp/ExperimentsSnowflake/tree/main/source/code/SQL/AcademicInstitution">ExperimentsSnowflake/tree/main/source/code/SQL/AcademicInstitution</a></p>
-<dl class="simple">
-<dt>Go to:</dt><dd><p><a class="reference external" href="./JSON_Ingestion.html">Next Chapter</a>
-<a class="reference external" href="./Attribute_Mapping.html">Previous Chapter</a>
-<a class="reference external" href="./index.html">Table of Content</a></p>
-</dd>
-</dl>
 </div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference external" href="./index.html">Table of Contents</a></p></td>
+<td><p><a class="reference external" href="./Attribute_Mapping.html">Previous Chapter</a></p></td>
+<td><p><a class="reference external" href="./JSON_Ingestion.html">Next Chapter</a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -2705,7 +2714,7 @@ Finally, we demonstrated yet another approach to MERGE dimension table using has
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Experiments with Snowflake</a></h1>
+<h1 class="logo"><a href="index.html">Snowflake</a></h1>
 
 
 
@@ -2717,42 +2726,40 @@ Finally, we demonstrated yet another approach to MERGE dimension table using has
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="snowflake_and_DP_overview.html">Snowflake &amp; Data Platform Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data_Load_Software.html">Data Load Software</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Snowflake_Staged_Area.html">Snowflake Staged Area</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Project_Data_Source.html">Project Data Source</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Ingesting_Snowflake_Stage.html">Ingesting Snowflake Stage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Attribute_Mapping.html">Attribute Mapping</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">CSV Ingestion</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#academic-institution">Academic Institution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#od-table-for-academic-institution">OD table for Academic Institution</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingSnowflake.html">Introducing Snowflake</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingDataplatform.html">Introducing data platform</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CSV ingestion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#academic-institution">Academic institution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#od-table-for-academic-institution">OD table for academic institution</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#snowflake-view-and-stored-procedure">Snowflake view and stored procedure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#managing-metadata-of-staged-file">Managing metadata of staged file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#stored-procedure-for-od-table-load">Stored procedure for OD table load</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#academic-institution-data-processing">Academic Institution data processing</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#carnegie-classification-transformation">Carnegie Classification transformation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#web-address-transformation">Web Address transformation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#academic-institution-data-processing">Academic institution data processing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#carnegie-classification-transformation">Carnegie classification transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#web-address-transformation">Web address transformation</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#load-dimension-table">Load Dimension table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#load-dimension-table">Load dimension table</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#schema-drift">Schema drift</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#merge-using-hash-key">MERGE using hash key</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Semi_structured_data_Load.html">Semi-structured data Load</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline Orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Pipeline_Orchestration.html">Pipeline orchestration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Business_Insights.html">Business insights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Summary.html">Summary</a></li>
 </ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="Attribute_Mapping.html" title="previous chapter">Attribute Mapping</a></li>
-      <li>Next: <a href="JSON_Ingestion.html" title="next chapter">JSON Ingestion</a></li>
+      <li>Previous: <a href="IntroducingDataplatform.html" title="previous chapter">Introducing data platform</a></li>
+      <li>Next: <a href="JSON_Ingestion.html" title="next chapter">JSON ingestion</a></li>
   </ul></li>
 </ul>
 </div>

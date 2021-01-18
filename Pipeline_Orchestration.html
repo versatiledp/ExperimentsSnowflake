@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pipeline Orchestration &#8212; Experiments with Snowflake 9/28/2020 documentation</title>
+    <title>Pipeline orchestration &#8212; Snowflake 9/28/2020 documentation</title>
     <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="static/my.css" type="text/css" />
@@ -19,6 +19,7 @@
     <script src="static/copybutton.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Business insights" href="Business_Insights.html" />
     <link rel="prev" title="Semi-structured data Load" href="Semi_structured_data_Load.html" />
    
   <link rel="stylesheet" href="static/custom.css" type="text/css" />
@@ -37,10 +38,10 @@
           <div class="body" role="main">
             
   <div class="section" id="pipeline-orchestration">
-<h1>Pipeline Orchestration<a class="headerlink" href="#pipeline-orchestration" title="Permalink to this headline">¶</a></h1>
+<h1>Pipeline orchestration<a class="headerlink" href="#pipeline-orchestration" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h2>
-<p>In this chapter, we are going to administar all the Snowflake transformation through single point of entry without using any
+<p>In this chapter, we are going to administer all the Snowflake transformation through single point of entry without using any
 third party tools.</p>
 <p>The steps laid out here, are easy to navigate, provide full control over sequencing, and can be easily extended to accommodate
 other needs as per different requirements.</p>
@@ -65,7 +66,7 @@ Attributes on this table are easy to understand for the end users.</p>
 <span class="p">);</span>
 </pre></div>
 </div>
-<p>We can easily enhance the framework from this chapter with additional functionality, like actions on success and failure
+<p>We can easily enhance this framework from this chapter with additional functionality, like actions on success/failure
 and parallel processing.
 The results of workflow steps are stored in the <strong>IPEDS_Audit</strong> table.
 The IPDS_Audit table holds information around steps executed, including:</p>
@@ -90,11 +91,12 @@ The IPDS_Audit table holds information around steps executed, including:</p>
 </pre></div>
 </div>
 <p>The following script is used to populate  <strong>IPEDS_Workflow</strong>.
-The script list the Stored procedure (SP) getting called, the input table name,
+The script populates the workflow control table. Workflow control table contians information about
+the Stored procedure to be called, the input table name,
 the output table name, and sequence number to execute this SP.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide load Workflow data</strong></p>
+<p>Show/Hide Load Workflow data</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TRUNCATE</span> <span class="n">TABLE</span> <span class="n">IPEDS_Workflow</span><span class="p">;</span>
 
@@ -113,7 +115,7 @@ the output table name, and sequence number to execute this SP.</p>
 
 <span class="n">UNION</span> <span class="n">ALL</span>
 
-<span class="n">SELECT</span> <span class="s1">&#39;Od_HDR&#39;</span> <span class="n">AS</span> <span class="n">StageName</span>
+<span class="n">SELECT</span> <span class="s1">&#39;OD_HDR&#39;</span> <span class="n">AS</span> <span class="n">StageName</span>
         <span class="p">,</span><span class="s1">&#39;pr_od_AcademicInstitution_Load(@Year)&#39;</span> <span class="n">AS</span> <span class="n">ProcedureName</span>
         <span class="p">,</span><span class="s1">&#39;&#39;</span> <span class="n">AS</span> <span class="n">SourceTableName</span>
         <span class="p">,</span><span class="s1">&#39;od_AcademicInstitution&#39;</span> <span class="n">TargetTableName</span>
@@ -129,7 +131,7 @@ the output table name, and sequence number to execute this SP.</p>
 
 <span class="n">UNION</span> <span class="n">ALL</span>
 
-<span class="n">SELECT</span> <span class="s1">&#39;Od_EFFY&#39;</span> <span class="n">AS</span> <span class="n">StageName</span>
+<span class="n">SELECT</span> <span class="s1">&#39;OD_EFFY&#39;</span> <span class="n">AS</span> <span class="n">StageName</span>
         <span class="p">,</span><span class="s1">&#39;pr_od_Enrollment_Load(@Year)&#39;</span> <span class="n">AS</span> <span class="n">ProcedureName</span>
         <span class="p">,</span><span class="s1">&#39;&#39;</span> <span class="n">AS</span> <span class="n">SourceTableName</span>
         <span class="p">,</span><span class="s1">&#39;od_Enrollment&#39;</span> <span class="n">TargetTableName</span>
@@ -224,10 +226,10 @@ the output table name, and sequence number to execute this SP.</p>
 </div>
 <p>The stored procedure <strong>pr_IPEDS_Process</strong> is used as a master controller.
 When we call this controller the following steps are executed.</p>
+<p>All data from the <strong>IPEDS_Workflow</strong> table is read in order of ExecutionOrder
+For each of the rows,</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>All data from the <strong>IPEDS_Workflow</strong> table is read in order of ExecutionOrder</p></li>
-<li><p>For each of the rows</p></li>
 <li><p>It will record the row count from the source and destination table.</p></li>
 <li><p>It will execute the stored procedure in the ProcedureName attribute</p></li>
 <li><p>It will record the row count on the destination table.</p></li>
@@ -235,103 +237,97 @@ When we call this controller the following steps are executed.</p>
 </div></blockquote>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide Process data stored procedure</strong></p>
+<p>Show/Hide Process data stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE
         OR REPLACE PROCEDURE pr_IPEDS_Process (YEAR FLOAT)
 RETURNS STRING LANGUAGE javascript AS $$
         var sql_WF = `SELECT StageName
-        ,ProcedureName
-        ,SourceTableName
-        ,TargetTableName
-        ,ExecutionOrder
-FROM IPEDS_Workflow
-ORDER BY ExecutionOrder`;
+                                                ,ProcedureName
+                                                ,SourceTableName
+                                                ,TargetTableName
+                                                ,ExecutionOrder
+                                        FROM IPEDS_Workflow
+                                        ORDER BY ExecutionOrder`;
 
-CmdSql =
-
-{sqlText: sql_WF};
+CmdSql = {sqlText: sql_WF};
 
 StmtSql = snowflake.createStatement(CmdSql);
 
-rsSql = StmtSql.
-
-EXECUTE ();
+rsSql = StmtSql.execute();
 
 try{
 
-WHILE (rsSql.NEXT ()) { var strSourceTable = rsSql.
-        getColumnValue(&quot;SOURCETABLENAME&quot;);
+WHILE (rsSql.NEXT ()) {
+        var strSourceTable =
+                rsSql.getColumnValue(&quot;SOURCETABLENAME&quot;);
         var strTargetTable =
                 rsSql.getColumnValue(&quot;TARGETTABLENAME&quot;);
 
-var strProcedureName = &#39;&#39;;
+        var strProcedureName = &#39;&#39;;
 
-var sourceCount = preCount = postCount = &#39;NULL&#39;;
+        var sourceCount = preCount = postCount = &#39;NULL&#39;;
 
-var sqlSourceRowCount = SqlRowCount = stmtRowCount = &#39;&#39;;
+        var sqlSourceRowCount = SqlRowCount = stmtRowCount = &#39;&#39;;
 
-var rsPreRowCount
-        ,rsPostRowCount;
+        var rsPreRowCount
+                ,rsPostRowCount;
 
-//Query = Query + &#39;--Source:&#39;
-        + strSourceTable + &#39; Target: &#39; + strTargetTable;
-IF (strSourceTable != &#39;&#39;)
-        { sqlSourceRowCount = `SELECT Count(1) AS
-        Counts FROM ` + strSourceTable +
-                        ` WHERE AcademicYear = ` + YEAR.toString() + `;
-        `;
-var stmtSourceRowCount
-        = snowflake.createStatement({sqlText:
-                sqlSourceRowCount});
+        // Get source rowcount if the source table is provided.
+        IF (strSourceTable != &#39;&#39;)
+                { sqlSourceRowCount =
+                                `SELECT Count(1) AS Counts
+                                 FROM ` + strSourceTable +
+                                ` WHERE AcademicYear = ` + YEAR.toString() + `;
+                `;
+                var stmtSourceRowCount
+                        = snowflake.createStatement({sqlText:
+                                sqlSourceRowCount});
 
-var rsSourceRowCount = stmtSourceRowCount.
+                var rsSourceRowCount = stmtSourceRowCount.execute();
 
-EXECUTE ();
+                IF (rsSourceRowCount.NEXT ()) { sourceCount =
+                        rsSourceRowCount.getColumnValue(&quot;COUNTS&quot;);
+                }
+        }
 
-IF (rsSourceRowCount.NEXT ()) { sourceCount =
-        rsSourceRowCount.getColumnValue(&quot;COUNTS&quot;);
-        } }
+        // Get Pre rowcount if the target table is provided.
+        IF (strTargetTable != &#39;&#39;) { SqlRowCount =
+                `SELECT COUNT(1) AS Counts
+                FROM ` + strTargetTable + `
+                WHERE AcademicYear = `
+                + YEAR.toString() + `;
+                `;
 
-// Get Pre rowcount if the target table is provided.
-IF (strTargetTable != &#39;&#39;) { SqlRowCount =
-        `SELECT COUNT(1) AS Counts FROM `
-         + strTargetTable + ` WHERE AcademicYear = `
-         + YEAR.toString() + `;
-        `;
+                stmtRowCount =
+                snowflake.createStatement({sqlText: SqlRowCount});
 
-//Query = Query + &#39;--Target:&#39; + SqlRowCount;
-stmtRowCount =
-        snowflake.createStatement({sqlText: SqlRowCount});
+                rsPreRowCount = stmtRowCount.execute();
 
-rsPreRowCount = stmtRowCount.
+                IF (rsPreRowCount.NEXT ()) {
+                        preCount = rsPreRowCount.getColumnValue(&quot;COUNTS&quot;);
+                }
+        }
 
-EXECUTE ();
-
-IF (rsPreRowCount.NEXT ()) { preCount = rsPreRowCount.
-        getColumnValue(&quot;COUNTS&quot;);
-        } }
+        //Execute processing procedure
         strProcedureName = `CALL `
                 + rsSql.getColumnValue(&quot;PROCEDURENAME&quot;).
-        replace(&#39;@Year&#39;, YEAR.toString()) + `;
+                replace(&#39;@Year&#39;, YEAR.toString()) + `;
+                `;
 
-`;
-
-//Query = Query + &#39;--Proc:&#39; + strProcedureName;
-var stmtProcessData = snowflake.createStatement({sqlText:
+        var stmtProcessData = snowflake.createStatement({sqlText:
                 strProcedureName});
 
-stmtProcessData.
+        stmtProcessData.execute ();
 
-EXECUTE ();
+        // Get Post rowcount if the target table is provided.
+        IF (SqlRowCount != &#39;&#39;) {
+                rsPostRowCount = stmtRowCount.execute();
 
-// Get Post rowcount if the target table is provided.
-IF (SqlRowCount != &#39;&#39;) { rsPostRowCount = stmtRowCount.
-        EXECUTE ();
-
-IF (rsPostRowCount.NEXT ()) { postCount = rsPostRowCount
-        .getColumnValue(&quot;COUNTS&quot;) } }
- var sql_Audit =
+                IF (rsPostRowCount.NEXT ()) {
+                postCount = rsPostRowCount.getColumnValue(&quot;COUNTS&quot;) }
+        }
+        var sql_Audit =
         `INSERT INTO IPEDS_Audit(StageName, ProcedureName,
         SourceTableName, SourceRowCount, TargetTableName, PreRowCount,
         PostRowCount) VALUES (
@@ -346,30 +342,29 @@ IF (rsPostRowCount.NEXT ()) { postCount = rsPostRowCount
         );
 `;
 
-//Query = Query + &#39;--Audit:&#39; + sql_Audit;
 var stmt = snowflake.createStatement({sqlText: sql_Audit});
 
-stmt.
-
-EXECUTE ();
+stmt.execute ();
 
 } // End While.
-        } catch(err) {
+}
+catch(err) {
 
-RETURN &quot;Failed:&quot; + err.toString();
+return &quot;Failed:&quot; + err.toString();
 
 }
 
-RETURN &#39;Success&#39;;$$;
+return &#39;Success&#39;;
+$$;
 </pre></div>
 </div>
 </div>
-<p>These row counts, with additional information are written to IPEDS_Audit.</p>
+<p>These row counts with additional information are written to IPEDS_Audit.</p>
 <p>The stored procedure <strong>pr_od_Truncate</strong> is written to truncate all the OD tables before we load data.
 Code for the stored procedure <strong>pr_od_Truncate</strong> is given below.</p>
 <div class="toggle docutils container">
 <div class="header docutils container">
-<p><strong>Show/Hide truncate OD workflow tables stored procedure</strong></p>
+<p>Show/Hide Truncate OD workflow tables stored procedure</p>
 </div>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span>CREATE OR REPLACE PROCEDURE pr_od_Truncate()
 RETURNS STRING
@@ -404,8 +399,8 @@ $$;
 </pre></div>
 </div>
 </div>
-<p>The combination of truncate OD table and load data from IPEDS dataset in the staging files is performed.
-with the following code</p>
+<p>The combination of truncate OD table and load data from IPEDS dataset into the staging files is performed
+with the following code.</p>
 <div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CALL</span> <span class="n">pr_od_Truncate</span><span class="p">();</span>
 <span class="n">CALL</span> <span class="n">pr_IPEDS_Process</span><span class="p">(</span><span class="mi">2017</span><span class="p">::</span><span class="n">FLOAT</span><span class="p">);</span>
 </pre></div>
@@ -420,14 +415,22 @@ We can easily enhance this to accommodate data lineage tracking for multiple inp
 , and one input to mulitple destination.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Code available to download at
+<p>Code is available to download at:
 <a class="reference external" href="https://github.com/versatiledp/ExperimentsSnowflake/tree/main/source/code/SQL/Workflow">ExperimentsSnowflake/tree/main/source/code/SQL/Workflow</a></p>
-<dl class="simple">
-<dt>Go to:</dt><dd><p><a class="reference external" href="./Semi_structured_data_Load.html">Previous Chapter</a>
-<a class="reference external" href="./index.html">Table of Content</a></p>
-</dd>
-</dl>
 </div>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference external" href="./index.html">Table of Contents</a></p></td>
+<td><p><a class="reference external" href="./Semi_structured_data_Load.html">Previous Chapter</a></p></td>
+<td><p><a class="reference external" href="./Summary.html">Next Chapter</a></p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -438,7 +441,7 @@ We can easily enhance this to accommodate data lineage tracking for multiple inp
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">Experiments with Snowflake</a></h1>
+<h1 class="logo"><a href="index.html">Snowflake</a></h1>
 
 
 
@@ -450,22 +453,20 @@ We can easily enhance this to accommodate data lineage tracking for multiple inp
 <h3>Navigation</h3>
 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="snowflake_and_DP_overview.html">Snowflake &amp; Data Platform Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Data_Load_Software.html">Data Load Software</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Snowflake_Staged_Area.html">Snowflake Staged Area</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Project_Data_Source.html">Project Data Source</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Ingesting_Snowflake_Stage.html">Ingesting Snowflake Stage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Attribute_Mapping.html">Attribute Mapping</a></li>
-<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC Ingestion</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet Ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingSnowflake.html">Introducing Snowflake</a></li>
+<li class="toctree-l1"><a class="reference internal" href="IntroducingDataplatform.html">Introducing data platform</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CSV_Ingestion.html">CSV ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="JSON_Ingestion.html">JSON ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ORC_Ingestion.html">ORC ingestion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Parquet_Ingestion.html">Parquet ingestion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Semi_structured_data_Load.html">Semi-structured data Load</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline Orchestration</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline orchestration</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#workflow">Workflow</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#summary">Summary</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Business_Insights.html">Business insights</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Summary.html">Summary</a></li>
 </ul>
 
 <div class="relations">
@@ -473,6 +474,7 @@ We can easily enhance this to accommodate data lineage tracking for multiple inp
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="Semi_structured_data_Load.html" title="previous chapter">Semi-structured data Load</a></li>
+      <li>Next: <a href="Business_Insights.html" title="next chapter">Business insights</a></li>
   </ul></li>
 </ul>
 </div>
