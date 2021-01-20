@@ -77,16 +77,16 @@ The above command returns the first and second column values of the Institution 
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>SELECT $1,$2,$3,$4,$5,$6,$7,…….,$71,$72 FROM @IPEDS_HD;
 </pre></div>
 </div>
-<div class="figure align-default">
-<a class="reference internal image-reference" href="images/IPEDTableData.jpg"><img alt="images/IPEDTableData.jpg" src="images/IPEDTableData.jpg" style="width: 2468.0px; height: 818.0px;" /></a>
+<div class="figure align-center">
+<img alt="images/IPEDTableData.jpg" src="images/IPEDTableData.jpg" />
 </div>
 <p>To ignore header records from loading into the data table, we can skip the header information row in staged file.</p>
 <div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>SELECT $1,$2,$3,$4,$5,$6,$7,…….,$71,$72
 FROM @IPEDS_HD WHERE metadata$file_row_number &gt; 1;
 </pre></div>
 </div>
-<div class="figure align-default">
-<a class="reference internal image-reference" href="images/IPEDTableData_AA.jpg"><img alt="images/IPEDTableData_AA.jpg" src="images/IPEDTableData_AA.jpg" style="width: 2729.0px; height: 733.0px;" /></a>
+<div class="figure align-center">
+<img alt="images/IPEDTableData_AA.jpg" src="images/IPEDTableData_AA.jpg" />
 </div>
 <p>The attributes from the the staged file do not hold column name and column types. We need to provide schema on read
 for each of the $1, $2,,, $n columns in the staged file &#64;IPEDS_HD. This is accompolished using mapping documents
@@ -531,8 +531,8 @@ CALL pr_od_AcademicInstitution_Load(2017::FLOAT);
 </pre></div>
 </div>
 <p>Here is the sample data retrieved using the SQL given above.</p>
-<div class="figure align-default">
-<a class="reference internal image-reference" href="images/academicInstitute.jpg"><img alt="images/academicInstitute.jpg" src="images/academicInstitute.jpg" style="width: 1747.0px; height: 584.0px;" /></a>
+<div class="figure align-center">
+<img alt="images/academicInstitute.jpg" src="images/academicInstitute.jpg" />
 </div>
 </div>
 <div class="section" id="academic-institution-data-processing">
@@ -686,9 +686,6 @@ If any of the column values are updated in the OD table, that value is updated i
 If the business key <strong>InstitutionIdentifier</strong> is not present in the dimension table (new records in the OD table),
 that record is inserted into the dimension table.</p>
 <p>We are using the slowly changing Type 1 concepts from datawarehouse load for merging AcademicInstitution.</p>
-<div class="figure align-default">
-<a class="reference internal image-reference" href="images/merge.png"><img alt="images/merge.png" src="images/merge.png" style="width: 960.0px; height: 540.0px;" /></a>
-</div>
 <p>We have created a stored procedure <strong>pr_AcademicInstitution_Load</strong> for merging data from the staging
 table <strong>od_AcademicInstitution</strong> to the dimension table <strong>AcademicInstitution</strong>.
 The script to create the stored procedure is given below.</p>
@@ -1155,9 +1152,9 @@ try {
 SELECT * FROM AcademicInstitution
 </pre></div>
 </div>
-<p>The following diagram shows all the data being processed and AcademicInstitution has The data as desired.</p>
-<div class="figure align-default">
-<a class="reference internal image-reference" href="images/IPEDTableData_BB.JPG"><img alt="images/IPEDTableData_BB.JPG" src="images/IPEDTableData_BB.JPG" style="width: 2817.0px; height: 1049.0px;" /></a>
+<p>The following diagram shows all the data being processed and AcademicInstitution has the data as desired.</p>
+<div class="figure align-center">
+<img alt="images/IPEDTableData_BB.JPG" src="images/IPEDTableData_BB.JPG" />
 </div>
 </div>
 <div class="section" id="schema-drift">
